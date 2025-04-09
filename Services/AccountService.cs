@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using DropShipProject.Models;
+﻿using DropShipProject.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace DropShipProject.Services
 {
@@ -14,28 +9,35 @@ namespace DropShipProject.Services
         private readonly DatabaseContext _context;
         private readonly IPasswordHasher<User> _passwordHasher;
         private readonly ILogger<AccountService> _logger;
-        private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly UserManager<User> _userManager;
 
         public AccountService(
             DatabaseContext context,
             IPasswordHasher<User> passwordHasher,
             ILogger<AccountService> logger,
-            RoleManager<IdentityRole> roleManager,
+            RoleManager<IdentityRole<int>> roleManager,
             UserManager<User> userManager)
         {
-            _context = context ?? throw new ArgumentNullException(nameof(context));
-            _passwordHasher = passwordHasher ?? throw new ArgumentNullException(nameof(passwordHasher));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
-            _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+            _context = context;
+            _passwordHasher = passwordHasher;
+            _logger = logger;
+            _roleManager = roleManager;
+            _userManager = userManager;
+        }
+
+        public async Task<List<User>> GetAllSuppliers()
+        {
+            return await _context.Users
+                .Where(u => u.UserType == "Supplier")
+                .OrderBy(u => u.CompanyName)
+                .ToListAsync();
         }
 
         public async Task<(bool Success, string ErrorMessage, User User)> RegisterUserAsync(RegisterViewModel model)
         {
             try
             {
-                // Validate input
                 if (model == null)
                     return (false, "Registration data cannot be null", null);
 
@@ -45,7 +47,6 @@ namespace DropShipProject.Services
                 if (await _context.Users.AnyAsync(u => u.Email == model.Email))
                     return (false, "Email already registered", null);
 
-                // Create user
                 var user = new User
                 {
                     UserName = model.Username,
@@ -53,22 +54,19 @@ namespace DropShipProject.Services
                     UserType = model.UserType,
                     CompanyName = model.CompanyName,
                     ContactPerson = model.ContactPerson,
-                    PhoneNumber = model.PhoneNumber ?? string.Empty,
-                    Address = model.Address ?? string.Empty,
-                    EmailConfirmed = true // Set to false if using email confirmation
+                    PhoneNumber = model.PhoneNumber,
+                    Address = model.Address,
+                    EmailConfirmed = true
                 };
 
-                // Hash password
                 user.PasswordHash = _passwordHasher.HashPassword(user, model.Password);
 
-                // Save user
                 await _context.Users.AddAsync(user);
                 await _context.SaveChangesAsync();
 
-                // Assign role
                 if (!await _roleManager.RoleExistsAsync(model.UserType))
                 {
-                    await _roleManager.CreateAsync(new IdentityRole(model.UserType));
+                    await _roleManager.CreateAsync(new IdentityRole<int>(model.UserType));
                 }
 
                 var roleResult = await _userManager.AddToRoleAsync(user, model.UserType);
@@ -119,23 +117,6 @@ namespace DropShipProject.Services
             {
                 _logger.LogError(ex, "Error authenticating user {Username}", username);
                 return (false, "An error occurred during authentication", null);
-            }
-        }
-
-        public async Task<List<User>> GetAllSuppliers()
-        {
-            try
-            {
-                return await _context.Users
-                    .Where(u => u.UserType == "Supplier")
-                    .OrderBy(u => u.CompanyName)
-                    .AsNoTracking()
-                    .ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving suppliers");
-                return new List<User>();
             }
         }
 
