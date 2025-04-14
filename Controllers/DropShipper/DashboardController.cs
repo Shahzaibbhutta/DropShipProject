@@ -22,17 +22,10 @@ namespace DropShipProject.Controllers.DropShipper
 
         public async Task<IActionResult> Index()
         {
-            // Get the current user
             var user = await _userManager.GetUserAsync(User);
-
-            if (user == null)
-            {
-                return NotFound("User not found");
-            }
-
-            // Get orders for the current dropshipper
+            if (user == null) return NotFound("User not found");
             var orders = await _orderService.GetOrdersForDropShipper(user.Id);
-            return View(orders);
+            return View(orders.ToList()); // Convert to List<Order>
         }
     }
 }

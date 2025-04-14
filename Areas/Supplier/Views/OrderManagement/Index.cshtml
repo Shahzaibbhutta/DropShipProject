@@ -1,0 +1,95 @@
+﻿@using DropShipProject.Models
+@model List<Order>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Order Management";
+}
+
+<!-- Bootstrap 5 CDN -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<div class="container my-4">
+    <h2 class="mb-4 text-primary">Order Management</h2>
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover shadow-sm">
+            <thead class="table-dark">
+                <tr>
+                    <th>Order #</th>
+                    <th>DropShipper</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var order in Model)
+                {
+                    <tr>
+                        <td>@order.OrderNumber</td>
+                        <td>@order.DropShipper.CompanyName</td>
+                        <td>@order.OrderDate.ToString("d")</td>
+                        <td>@order.TotalAmount.ToString("C")</td>
+                        <td>
+                            <span class="badge @GetStatusBadgeClass(order.Status)">
+                                @order.Status
+                            </span>
+                        </td>
+                        <td>
+                            <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-info">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+
+                            <!-- Status Update Dropdown -->
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Update Status
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Processing')">Processing</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Shipped')">Shipped</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Delivered')">Delivered</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(@order.Id, 'Cancelled')">Cancel</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function updateStatus(orderId, status) {
+            $.post('/Supplier/OrderManagement/UpdateStatus', { orderId: orderId, status: status })
+                .done(function () {
+                    location.reload();
+                })
+                .fail(function () {
+                    alert('Failed to update status');
+                });
+        }
+    </script>
+}
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Processing" => "bg-info text-white",
+            "Shipped" => "bg-success",
+            "Delivered" => "bg-primary",
+            "Cancelled" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+}

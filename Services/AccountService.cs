@@ -56,7 +56,8 @@ namespace DropShipProject.Services
                     ContactPerson = model.ContactPerson,
                     PhoneNumber = model.PhoneNumber,
                     Address = model.Address,
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    SecurityStamp = Guid.NewGuid().ToString() // Add this line
                 };
 
                 user.PasswordHash = _passwordHasher.HashPassword(user, model.Password);

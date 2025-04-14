@@ -25,18 +25,9 @@ namespace DropShipProject.Controllers.Supplier
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return NotFound("User not found");
-            }
-
-            // If using string IDs (default Identity behavior):
+            if (user == null) return NotFound("User not found");
             var orders = await _orderService.GetOrdersForSupplier(user.Id);
-
-            // OR if using integer IDs:
-            // var orders = await _orderService.GetOrdersForSupplier(int.Parse(user.Id));
-
-            return View(orders);
+            return View(orders.ToList()); // Convert to List<Order>
         }
 
         public async Task<IActionResult> Details(int id)

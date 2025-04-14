@@ -41,7 +41,12 @@ builder.Services.AddControllersWithViews(options =>
 {
     options.MaxModelValidationErrors = 50;
 });
-
+builder.Services.AddSession(options =>
+{
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+});
 // Add Razor Pages support
 builder.Services.AddRazorPages();
 
@@ -65,12 +70,10 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
 // Configure endpoints
 app.MapControllerRoute(
     name: "areas",
-    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
-
+    pattern: "{area:exists}/{controller}/{action=Index}/{id?}");
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

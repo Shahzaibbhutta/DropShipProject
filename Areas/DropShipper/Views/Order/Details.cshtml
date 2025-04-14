@@ -1,0 +1,95 @@
+﻿@model DropShipProject.Models.Order
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Order Details</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Order Number</dt>
+                        <dd class="col-sm-8">@Model.OrderNumber</dd>
+
+                        <dt class="col-sm-4">Supplier</dt>
+                        <dd class="col-sm-8">@Model.Supplier.CompanyName</dd>
+
+                        <dt class="col-sm-4">Date</dt>
+                        <dd class="col-sm-8">@Model.OrderDate.ToString("d")</dd>
+
+                        <dt class="col-sm-4">Total Amount</dt>
+                        <dd class="col-sm-8">@Model.TotalAmount.ToString("C")</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl class="row">
+                        <dt class="col-sm-4">Status</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge @GetStatusBadgeClass(Model.Status)">
+                                @Model.Status
+                            </span>
+                        </dd>
+
+                        <dt class="col-sm-4">Notes</dt>
+                        <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Notes) ? "N/A" : Model.Notes)</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <h4 class="mt-4">Order Items</h4>
+            <table class="table table-striped table-hover">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Product</th>
+                        <th class="text-right">Quantity</th>
+                        <th class="text-right">Unit Price</th>
+                        <th class="text-right">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OrderItems)
+                    {
+                        <tr>
+                            <td>@item.ProductName</td>
+                            <td class="text-right">@item.Quantity</td>
+                            <td class="text-right">@item.UnitPrice.ToString("C")</td>
+                            <td class="text-right">@((item.Quantity * item.UnitPrice).ToString("C"))</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr class="font-weight-bold">
+                        <td colspan="3" class="text-right">Grand Total:</td>
+                        <td class="text-right">@Model.TotalAmount.ToString("C")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="card-footer">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Orders
+            </a>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "badge-warning",
+            "Processing" => "badge-info",
+            "Shipped" => "badge-success",
+            "Delivered" => "badge-primary",
+            "Cancelled" => "badge-danger",
+            _ => "badge-secondary"
+        };
+    }
+}

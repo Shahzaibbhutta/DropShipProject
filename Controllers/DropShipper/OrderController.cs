@@ -29,9 +29,8 @@ namespace DropShipProject.Controllers.DropShipper
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound("User not found");
-
             var orders = await _orderService.GetOrdersForDropShipper(user.Id);
-            return View(orders);
+            return View(orders.ToList()); // Convert to List<Order>
         }
 
         public async Task<IActionResult> Details(int id)
