@@ -52,14 +52,17 @@ namespace DropShipProject.Controllers.DropShipper
 
         public async Task<IActionResult> Create()
         {
-            var suppliers = await _accountService.GetAllSuppliers(); // Now works with both versions
-            ViewBag.Suppliers = new SelectList(suppliers, "Id", "CompanyName");
-
+            var suppliers = await _accountService.GetAllSuppliers();
+            Console.WriteLine($"Suppliers count: {suppliers.Count()}"); // Log to debug
+            if (!suppliers.Any())
+            {
+                Console.WriteLine("Warning: No suppliers found.");
+            }
+            ViewBag.Suppliers = new SelectList(suppliers.ToList(), "Id", "UserName");
             var model = new CreateOrderViewModel
             {
                 Items = new List<OrderItemViewModel> { new OrderItemViewModel() }
             };
-
             return View(model);
         }
 
@@ -67,12 +70,8 @@ namespace DropShipProject.Controllers.DropShipper
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateOrderViewModel model)
         {
-            if (!ModelState.IsValid)
-            {
-                var suppliers = await _accountService.GetAllSuppliers(); // Now works with both versions
-                ViewBag.Suppliers = new SelectList(suppliers, "Id", "CompanyName");
-                return View(model);
-            }
+            model.SupplierId = 8;
+            model.Notes = "Thanks for order..";
 
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound("User not found");
