@@ -29,7 +29,7 @@ namespace DropShipProject.Controllers.Supplier
             var orders = await _orderService.GetOrdersForSupplier(user.Id);
             return View(orders.ToList()); // Convert to List<Order>
         }
-
+        [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
             var order = await _orderService.GetOrderDetails(id);
@@ -49,27 +49,25 @@ namespace DropShipProject.Controllers.Supplier
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int orderId, string status)
         {
             try
             {
-                // Verify the order belongs to the current supplier
                 var order = await _orderService.GetOrderDetails(orderId);
                 var user = await _userManager.GetUserAsync(User);
 
                 if (order == null || order.SupplierId != user.Id)
                 {
-                    return Forbid();
+                    return Json(new { success = false, message = "Unauthorized or order not found." });
                 }
 
                 await _orderService.UpdateOrderStatus(orderId, status);
-                return RedirectToAction(nameof(Index));
+                return Json(new { success = true });
             }
-            catch
+            catch (Exception ex)
             {
-                // Log the error
-                return RedirectToAction(nameof(Index));
+                Console.WriteLine($"UpdateStatus Error: {ex.Message}");
+                return Json(new { success = false, message = "Failed to update status." });
             }
         }
     }

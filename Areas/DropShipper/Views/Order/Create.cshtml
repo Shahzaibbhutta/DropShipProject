@@ -22,7 +22,6 @@
                 <label asp-for="SupplierId" class="form-label fw-bold">Supplier</label>
                 <select asp-for="SupplierId" class="form-select" asp-items="ViewBag.Suppliers" required>
                     <option value="">Select a supplier</option>
-                    <option value="8">Admin Supplier</option>
                 </select>
                 <span asp-validation-for="SupplierId" class="text-danger"></span>
             </div>

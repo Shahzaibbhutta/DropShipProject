@@ -33,21 +33,31 @@ namespace DropShipProject.Controllers.DropShipper
             return View(orders.ToList()); // Convert to List<Order>
         }
 
+        [Area("DropShipper")]
+        [Authorize]
         public async Task<IActionResult> Details(int id)
         {
-            var order = await _orderService.GetOrderDetails(id);
-            if (order == null)
+            try
             {
-                return NotFound();
-            }
+                var order = await _orderService.GetOrderDetails(id);
+                if (order == null)
+                {
+                    return NotFound();
+                }
 
-            var user = await _userManager.GetUserAsync(User);
-            if (order.DropShipperId != user.Id)
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null || order.DropShipperId != user.Id)
+                {
+                    return Forbid();
+                }
+
+                return View(order);
+            }
+            catch (Exception ex)
             {
-                return Forbid();
+                // Log the exception
+                return StatusCode(500, "An error occurred while processing your request.");
             }
-
-            return View(order);
         }
 
         public async Task<IActionResult> Create()
@@ -58,7 +68,7 @@ namespace DropShipProject.Controllers.DropShipper
             {
                 Console.WriteLine("Warning: No suppliers found.");
             }
-            ViewBag.Suppliers = new SelectList(suppliers.ToList(), "Id", "UserName");
+            ViewBag.Suppliers = new SelectList(suppliers.ToList(), "Id", "CompanyName");
             var model = new CreateOrderViewModel
             {
                 Items = new List<OrderItemViewModel> { new OrderItemViewModel() }
@@ -70,9 +80,6 @@ namespace DropShipProject.Controllers.DropShipper
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateOrderViewModel model)
         {
-            model.SupplierId = 8;
-            model.Notes = "Thanks for order..";
-
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound("User not found");
 
