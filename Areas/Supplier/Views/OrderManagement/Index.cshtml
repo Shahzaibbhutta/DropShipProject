@@ -45,11 +45,13 @@
                                 </button>
 
                                 <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Pending')">Pending</a></li>
                                     <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Processing')">Processing</a></li>
                                     <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Shipped')">Shipped</a></li>
                                     <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Delivered')">Delivered</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Return')">Return</a></li>
                                     <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(@order.Id, 'Cancelled')">Cancel</a></li>
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(@order.Id, 'Cancelled')">Cancelled</a></li>
                                 </ul>
                             </div>
 
@@ -97,6 +99,7 @@
             "Processing" => "bg-info text-white",
             "Shipped" => "bg-success",
             "Delivered" => "bg-primary",
+            "Return" => "bg-secondary",
             "Cancelled" => "bg-danger",
             _ => "bg-secondary"
         };
