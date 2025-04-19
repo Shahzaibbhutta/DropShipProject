@@ -1,5 +1,9 @@
 ﻿using DropShipProject.Models;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace DropShipProject.Services
 {
@@ -21,24 +25,34 @@ namespace DropShipProject.Services
                 SupplierId = model.SupplierId,
                 Notes = model.Notes,
                 Status = "Pending",
-                OrderDate = DateTime.UtcNow
+                OrderDate = DateTime.UtcNow,
+                PaymentMethod = model.PaymentMethod,
+                ShippingAddress = model.ShippingAddress,
+                City = model.City
             };
 
             foreach (var item in model.Items)
             {
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product == null || product.SupplierId != model.SupplierId)
+                {
+                    throw new InvalidOperationException("Invalid product or supplier mismatch.");
+                }
+                if (product.Stock < item.Quantity)
+                {
+                    throw new InvalidOperationException($"Insufficient stock for {product.Name}.");
+                }
                 order.OrderItems.Add(new OrderItem
                 {
-                    ProductName = item.ProductName,
+                    ProductId = item.ProductId,
                     Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice
+                    UnitPrice = product.Price
                 });
             }
 
             order.TotalAmount = order.OrderItems.Sum(i => i.Quantity * i.UnitPrice);
-
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
-
             return order;
         }
 
@@ -48,6 +62,7 @@ namespace DropShipProject.Services
                 .Include(o => o.DropShipper)
                 .Include(o => o.Supplier)
                 .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
@@ -56,6 +71,7 @@ namespace DropShipProject.Services
             return await _context.Orders
                 .Include(o => o.Supplier)
                 .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
                 .Where(o => o.DropShipperId == dropShipperId)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
@@ -66,6 +82,7 @@ namespace DropShipProject.Services
             return await _context.Orders
                 .Include(o => o.DropShipper)
                 .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
                 .Where(o => o.SupplierId == supplierId)
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
