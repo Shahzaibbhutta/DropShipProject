@@ -27,16 +27,21 @@ namespace DropShipProject.Services
                 Status = "Pending",
                 OrderDate = DateTime.UtcNow,
                 PaymentMethod = model.PaymentMethod,
+                CustomerName = model.CustomerName,
+                CustomerMobile = model.CustomerMobile,
                 ShippingAddress = model.ShippingAddress,
-                City = model.City
+                City = model.City,
+                CourierService = model.CourierService
             };
 
             foreach (var item in model.Items)
             {
-                var product = await _context.Products.FindAsync(item.ProductId);
-                if (product == null || product.SupplierId != model.SupplierId)
+                var product = await _context.Products
+                    .Where(p => p.SKU == item.SKU && p.SupplierId == model.SupplierId)
+                    .FirstOrDefaultAsync();
+                if (product == null)
                 {
-                    throw new InvalidOperationException("Invalid product or supplier mismatch.");
+                    throw new InvalidOperationException($"Product with SKU {item.SKU} not found for this supplier.");
                 }
                 if (product.Stock < item.Quantity)
                 {
@@ -44,7 +49,7 @@ namespace DropShipProject.Services
                 }
                 order.OrderItems.Add(new OrderItem
                 {
-                    ProductId = item.ProductId,
+                    ProductId = product.Id,
                     Quantity = item.Quantity,
                     UnitPrice = product.Price
                 });

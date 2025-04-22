@@ -9,35 +9,79 @@
 
 <div class="container my-4">
     <h2 class="mb-4 text-primary">Order Details</h2>
-
-    <!-- Error Alert -->
     <div id="errorAlert" class="alert alert-danger d-none" role="alert"></div>
 
     <div class="card shadow-sm border">
         <div class="card-body">
+            <h4 class="mb-3">Order Information</h4>
             <dl class="row">
                 <dt class="col-sm-4 fw-bold">Order Number</dt>
                 <dd class="col-sm-8">@Model.OrderNumber</dd>
-
                 <dt class="col-sm-4 fw-bold">DropShipper</dt>
-                <dd class="col-sm-8">@Model.DropShipper.CompanyName</dd>
-
+                <dd class="col-sm-8">@Model.DropShipper?.UserName</dd>
                 <dt class="col-sm-4 fw-bold">Date</dt>
                 <dd class="col-sm-8">@Model.OrderDate.ToString("d")</dd>
-
                 <dt class="col-sm-4 fw-bold">Total Amount</dt>
                 <dd class="col-sm-8">@Model.TotalAmount.ToString("C")</dd>
-
                 <dt class="col-sm-4 fw-bold">Status</dt>
                 <dd class="col-sm-8">
                     <span class="badge @GetStatusBadgeClass(Model.Status)">
                         @Model.Status
                     </span>
                 </dd>
+                <dt class="col-sm-4 fw-bold">Payment Method</dt>
+                <dd class="col-sm-8">@Model.PaymentMethod</dd>
             </dl>
 
-            <!-- Update Status Form -->
+            <h4 class="mb-3">Customer Details</h4>
+            <dl class="row">
+                <dt class="col-sm-4 fw-bold">Customer Name</dt>
+                <dd class="col-sm-8">@Model.CustomerName</dd>
+                <dt class="col-sm-4 fw-bold">Customer Mobile</dt>
+                <dd class="col-sm-8">@Model.CustomerMobile</dd>
+                <dt class="col-sm-4 fw-bold">Shipping Address</dt>
+                <dd class="col-sm-8">@Model.ShippingAddress</dd>
+                <dt class="col-sm-4 fw-bold">City</dt>
+                <dd class="col-sm-8">@Model.City</dd>
+                <dt class="col-sm-4 fw-bold">Courier Service</dt>
+                <dd class="col-sm-8">@Model.CourierService</dd>
+                <dt class="col-sm-4 fw-bold">Notes</dt>
+                <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Notes) ? "None" : Model.Notes)</dd>
+            </dl>
+
+            <h4 class="mt-4">Order Items</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Picture</th>
+                            <th>Product</th>
+                            <th>SKU</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderItems)
+                        {
+                            <tr>
+                                <td>
+                                    <img src="@item.Product?.ProductPicture" alt="@item.Product?.Name" style="max-width: 50px;" />
+                                </td>
+                                <td>@item.Product?.Name</td>
+                                <td>@item.Product?.SKU</td>
+                                <td>@item.Quantity</td>
+                                <td>@item.UnitPrice</td>
+                                <td>@(item.Quantity * item.UnitPrice)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
             <form id="updateStatusForm" class="mt-3">
+                @Html.AntiForgeryToken()
                 <input type="hidden" name="orderId" value="@Model.Id" />
                 <div class="row">
                     <div class="col-md-6">

@@ -61,7 +61,7 @@
                         <td>@order.OrderNumber</td>
                         <td>@order.Supplier.CompanyName</td>
                         <td>@order.OrderDate.ToString("d")</td>
-                        <td>@order.TotalAmount.ToString("C")</td>
+                        <td>@order.TotalAmount</td>
                         <td>
                             <span class="badge @GetStatusBadgeClass(order.Status) rounded-pill">
                                 @order.Status
@@ -82,10 +82,11 @@
     {
         return status switch
         {
-            "Pending" => "bg-warning text-dark",    // text-dark for better contrast
+            "Pending" => "bg-warning text-dark",   
             "Processing" => "bg-info text-dark",
             "Shipped" => "bg-success",
             "Delivered" => "bg-primary",
+            "Return" => "bg-secondary",
             "Cancelled" => "bg-danger",
             _ => "bg-secondary"
         };

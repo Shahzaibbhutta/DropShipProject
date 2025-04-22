@@ -29,7 +29,7 @@
                         <td>@order.OrderNumber</td>
                         <td>@order.Supplier.CompanyName</td>
                         <td>@order.OrderDate.ToString("d")</td>
-                        <td>@order.TotalAmount.ToString("C")</td>
+                        <td>@order.TotalAmount</td>
                         <td>
                             <span class="badge @GetStatusBadgeClass(order.Status)">
                                 @order.Status
@@ -56,6 +56,7 @@
             "Processing" => "bg-info text-white",
             "Shipped" => "bg-success",
             "Delivered" => "bg-primary",
+            "Return" => "bg-secondary",
             "Cancelled" => "bg-danger",
             _ => "bg-secondary"
         };

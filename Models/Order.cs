@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace DropShipProject.Models
 {
@@ -15,11 +17,17 @@ namespace DropShipProject.Models
         public decimal TotalAmount { get; set; }
         public string Notes { get; set; }
         [Required]
-        public string PaymentMethod { get; set; } = "COD"; // Default to Cash on Delivery
+        public string PaymentMethod { get; set; } = "COD";
+        [Required]
+        public string CustomerName { get; set; } // New field
+        [Required]
+        public string CustomerMobile { get; set; } // New field
         [Required]
         public string ShippingAddress { get; set; }
         [Required]
         public string City { get; set; }
+        [Required]
+        public string CourierService { get; set; } // New field
         public List<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     }
 
@@ -28,10 +36,10 @@ namespace DropShipProject.Models
         public int Id { get; set; }
         public int OrderId { get; set; }
         public Order Order { get; set; }
-        public int ProductId { get; set; } // Reference Product instead of ProductName
+        public int ProductId { get; set; }
         public Product Product { get; set; }
         public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; } // Still stored for order history
+        public decimal UnitPrice { get; set; }
     }
 
     public class CreateOrderViewModel
@@ -39,19 +47,27 @@ namespace DropShipProject.Models
         public int SupplierId { get; set; }
         public string Notes { get; set; }
         [Required]
+        public string CustomerName { get; set; } // New field
+        [Required]
+        public string CustomerMobile { get; set; } // New field
+        [Required]
         public string ShippingAddress { get; set; }
         [Required]
         public string City { get; set; }
-        public string PaymentMethod { get; set; } = "COD"; // Default to COD
+        [Required]
+        public string CourierService { get; set; } // New field
+        public string PaymentMethod { get; set; } = "COD";
         public List<OrderItemViewModel> Items { get; set; } = new List<OrderItemViewModel>();
     }
 
     public class OrderItemViewModel
     {
-        public int ProductId { get; set; } // Select Product instead of entering name
+        public int ProductId { get; set; }
+        public string SKU { get; set; } // New field for SKU input
         public int Quantity { get; set; } = 1;
-        public decimal UnitPrice { get; set; } // Populated from Product
+        public decimal UnitPrice { get; set; }
     }
+
     public class Product
     {
         public int Id { get; set; }
@@ -63,7 +79,12 @@ namespace DropShipProject.Models
         [Required]
         [Range(0, int.MaxValue)]
         public int Stock { get; set; }
+        [Required]
+        public string SKU { get; set; }
+        [Required]
+        public string ProductPicture { get; set; }
+        [Required] // Explicitly mark as required (already implied by int)
         public int SupplierId { get; set; }
-        public User Supplier { get; set; }
+        public User Supplier { get; set; } // Navigation property, optional
     }
 }

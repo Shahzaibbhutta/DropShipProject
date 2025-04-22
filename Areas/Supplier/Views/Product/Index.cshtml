@@ -16,6 +16,8 @@
         <table class="table table-bordered table-hover shadow-sm">
             <thead class="table-dark">
                 <tr>
+                    <th>SKU</th>
+                    <th>Picture</th>
                     <th>Name</th>
                     <th>Price</th>
                     <th>Stock</th>
@@ -26,8 +28,12 @@
                 @foreach (var product in Model)
                 {
                     <tr>
+                        <td>@product.SKU</td>
+                        <td>
+                            <img src="@product.ProductPicture" alt="@product.Name" style="max-width: 50px;" />
+                        </td>
                         <td>@product.Name</td>
-                        <td>@product.Price.ToString("C")</td>
+                        <td>@product.Price</td>
                         <td>@product.Stock</td>
                         <td>
                             <a asp-action="Edit" asp-route-id="@product.Id" class="btn btn-sm btn-info">Edit</a>

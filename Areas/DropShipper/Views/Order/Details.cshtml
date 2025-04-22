@@ -26,7 +26,7 @@
                 <dd class="col-sm-8">@Model.OrderDate.ToString("d")</dd>
 
                 <dt class="col-sm-4 fw-bold">Total Amount</dt>
-                <dd class="col-sm-8">@Model.TotalAmount.ToString("C")</dd>
+                <dd class="col-sm-8">@Model.TotalAmount</dd>
 
                 <dt class="col-sm-4 fw-bold">Status</dt>
                 <dd class="col-sm-8">
@@ -65,15 +65,15 @@
                             <tr>
                                 <td>@item.Product?.Name</td>
                                 <td>@item.Quantity</td>
-                                <td>@item.UnitPrice.ToString("C")</td>
-                                <td>@(item.Quantity * item.UnitPrice).ToString("C")</td>
+                                <td>@item.UnitPrice</td>
+                                <td>@(item.Quantity * item.UnitPrice)</td>
                             </tr>
                         }
                     </tbody>
                     <tfoot>
                         <tr class="fw-bold">
                             <td colspan="3" class="text-end">Grand Total:</td>
-                            <td class="text-end">@Model.TotalAmount.ToString("C")</td>
+                            <td class="text-end">@Model.TotalAmount</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -97,6 +97,7 @@
             "Processing" => "bg-info text-white",
             "Shipped" => "bg-success",
             "Delivered" => "bg-primary",
+            "Return" => "bg-secondary",
             "Cancelled" => "bg-danger",
             _ => "bg-secondary"
         };

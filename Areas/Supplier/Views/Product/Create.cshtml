@@ -11,7 +11,16 @@
 
 <div class="container my-4">
     <h2 class="mb-4 text-primary">Create Product</h2>
-    <form asp-action="Create" method="post">
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger">
+            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <p>@error.ErrorMessage</p>
+            }
+        </div>
+    }
+    <form asp-action="Create" method="post" enctype="multipart/form-data">
         <div class="mb-3">
             <label asp-for="Name" class="form-label"></label>
             <input asp-for="Name" class="form-control" required />
@@ -26,6 +35,21 @@
             <label asp-for="Stock" class="form-label"></label>
             <input asp-for="Stock" class="form-control" type="number" required />
             <span asp-validation-for="Stock" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="SKU" class="form-label"></label>
+            <input asp-for="SKU" class="form-control" required />
+            <span asp-validation-for="SKU" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label for="ProductPictureFile" class="form-label">Product Picture</label>
+            <input type="file" name="ProductPictureFile" class="form-control" accept="image/*" required />
+            @if (ViewData.ModelState.ContainsKey("ProductPictureFile"))
+            {
+                <span class="text-danger">
+                    @ViewData.ModelState["ProductPictureFile"].Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
         </div>
         <button type="submit" class="btn btn-primary">Create</button>
         <a asp-action="Index" class="btn btn-secondary">Cancel</a>

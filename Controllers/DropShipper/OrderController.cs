@@ -65,7 +65,7 @@ namespace DropShipProject.Areas.DropShipper.Controllers
         {
             var suppliers = await _accountService.GetAllSuppliers();
             ViewBag.Suppliers = new SelectList(suppliers, "Id", "UserName");
-            ViewBag.Products = new List<Product>();
+            ViewBag.CourierServices = new List<string> { "FedEx", "UPS", "DHL", "Local Courier" }; // Predefined options
             var model = new CreateOrderViewModel
             {
                 Items = new List<OrderItemViewModel> { new OrderItemViewModel() }
@@ -78,7 +78,7 @@ namespace DropShipProject.Areas.DropShipper.Controllers
         {
             var products = await _context.Products
                 .Where(p => p.SupplierId == supplierId)
-                .Select(p => new { p.Id, p.Name, p.Price })
+                .Select(p => new { p.Id, p.SKU, p.Name, p.Price, p.ProductPicture })
                 .ToListAsync();
             return Json(products);
         }
@@ -91,10 +91,7 @@ namespace DropShipProject.Areas.DropShipper.Controllers
             {
                 var suppliers = await _accountService.GetAllSuppliers();
                 ViewBag.Suppliers = new SelectList(suppliers, "Id", "UserName", model.SupplierId);
-                var products = await _context.Products
-                    .Where(p => p.SupplierId == model.SupplierId)
-                    .ToListAsync();
-                ViewBag.Products = products;
+                ViewBag.CourierServices = new List<string> { "FedEx", "UPS", "DHL", "Local Courier" };
                 return View(model);
             }
 
@@ -111,9 +108,7 @@ namespace DropShipProject.Areas.DropShipper.Controllers
                 ModelState.AddModelError("", ex.Message);
                 var suppliers = await _accountService.GetAllSuppliers();
                 ViewBag.Suppliers = new SelectList(suppliers, "Id", "UserName", model.SupplierId);
-                ViewBag.Products = await _context.Products
-                    .Where(p => p.SupplierId == model.SupplierId)
-                    .ToListAsync();
+                ViewBag.CourierServices = new List<string> { "FedEx", "UPS", "DHL", "Local Courier" };
                 return View(model);
             }
         }
