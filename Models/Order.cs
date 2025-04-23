@@ -67,7 +67,11 @@ namespace DropShipProject.Models
         public int Quantity { get; set; } = 1;
         public decimal UnitPrice { get; set; }
     }
-
+    public class SupplierProductsViewModel
+    {
+        public string SupplierName { get; set; }
+        public List<Product> Products { get; set; }
+    }
     public class Product
     {
         public int Id { get; set; }
