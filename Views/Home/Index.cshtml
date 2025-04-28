@@ -7,42 +7,128 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<div class="container my-4">
-    <h1 class="mb-4 text-center">Welcome to Our Store</h1>
+<style>
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .store-header {
+        color: #343a40;
+        font-weight: 700;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .supplier-title {
+        color: #495057;
+        font-weight: 600;
+        border-left: 4px solid #007bff;
+        padding-left: 10px;
+        margin-bottom: 20px;
+    }
+
+    .product-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none;
+        border-radius: 15px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+    .product-img {
+        width: 100%;
+        height: 250px;
+        object-fit: contain; /* Ensures full image is visible without cropping */
+        object-position: center;
+        transition: transform 0.3s ease;
+        display: block; /* Prevents any unwanted spacing */
+        background-color: #f8f9fa; /* Light background for transparency or small images */
+    }
+
+    .product-card:hover .product-img {
+        transform: scale(1.05);
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        color: #212529;
+        margin-bottom: 15px;
+    }
+
+    .card-text {
+        color: #6c757d;
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .no-products {
+        background: #e9ecef;
+        border compañeros-radius: 10px;
+        padding: 20px;
+        font-size: 1.1rem;
+    }
+</style>
+
+<div class="container my-5">
+    <h1 class="store-header mb-5 text-center">Welcome to Our Store</h1>
 
     @if (Model == null || !Model.Any())
     {
-        <div class="alert alert-info text-center">
-            No products available at the moment.
+        <div class="no-products text-center">
+            No products available at the moment. Check back soon!
         </div>
     }
     else
     {
         @foreach (var supplierGroup in Model)
         {
-            <h2 class="mb-3">Products by @supplierGroup.SupplierName</h2>
-            <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
+            <h2 class="supplier-title mb-4">Products by @supplierGroup.SupplierName</h2>
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
                 @foreach (var product in supplierGroup.Products)
                 {
                     <div class="col">
-                        <div class="card h-100 shadow-sm">
-                            @if (!string.IsNullOrEmpty(product.ProductPicture))
-                            {
-                                <img src="@product.ProductPicture" class="card-img-top" alt="@product.Name" style="height: 200px; object-fit: cover;">
-                            }
-                            else
-                            {
-                                <img src="/images/placeholder.jpg" class="card-img-top" alt="No image available" style="height: 200px; object-fit: cover;">
-                            }
+                        <div class="product-card h-100 shadow-sm">
+                            <div class="overflow-hidden">
+                                @if (!string.IsNullOrEmpty(product.ProductPicture))
+                                {
+                                    <img src="@product.ProductPicture" class="product-img" alt="@product.Name">
+                                }
+                                else
+                                {
+                                    <img src="/images/placeholder.jpg" class="product-img" alt="No image available">
+                                }
+                            </div>
                             <div class="card-body">
                                 <h5 class="card-title">@product.Name</h5>
                                 <p class="card-text">
-                                    <strong>Price:</strong> @product.Price<br />
-                                    <strong>Stock:</strong> @product.Stock<br />
+                                    <strong>Price:</strong> $@product.Price<br />
+                                    <strong>Stock:</strong> @product.Stock units<br />
                                     <strong>SKU:</strong> @product.SKU
                                 </p>
                             </div>
-                            <div class="card-footer text-center">
+                            <div class="card-footer bg-transparent border-0 text-center pb-3">
                                 <a href="@Url.Action("Details", "Home", new { id = product.Id })" class="btn btn-primary">View Details</a>
                             </div>
                         </div>

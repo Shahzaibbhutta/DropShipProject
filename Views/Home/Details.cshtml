@@ -8,32 +8,128 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<div class="container my-4">
-    <h1 class="mb-4 text-center">@Model.Name</h1>
+<style>
+    body {
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .product-header {
+        color: #343a40;
+        font-weight: 700;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+    }
+
+    .product-img {
+        width: 100%;
+        max-height: 400px;
+        object-fit: contain; /* Ensures full image is visible without cropping */
+        object-position: center;
+        border-radius: 15px;
+        transition: transform 0.3s ease;
+        background-color: #f8f9fa; /* Light background for transparency */
+    }
+
+        .product-img:hover {
+            transform: scale(1.05);
+        }
+
+    .product-card {
+        border: none;
+        border-radius: 15px;
+        background: #ffffff;
+        transition: box-shadow 0.3s ease;
+    }
+
+        .product-card:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+    .card-body {
+        padding: 25px;
+    }
+
+    .card-title {
+        font-size: 1.5rem;
+        color: #212529;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+
+    .card-text {
+        color: #6c757d;
+        font-size: 1rem;
+        line-height: 1.8;
+    }
+
+        .card-text strong {
+            color: #343a40;
+        }
+
+    .btn-primary {
+        background-color: #007bff;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+    .btn-secondary {
+        background-color: #6c757d;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: background-color 0.3s ease;
+    }
+
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+
+    .image-container {
+        overflow: hidden;
+        border-radius: 15px;
+        background: #ffffff;
+        padding: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+</style>
+
+<div class="container my-5">
+    <h1 class="product-header text-center">@Model.Name</h1>
 
     <div class="row">
-        <div class="col-md-6">
-            @if (!string.IsNullOrEmpty(Model.ProductPicture))
-            {
-                <img src="@Model.ProductPicture" class="img-fluid rounded mb-3" alt="@Model.Name" style="max-height: 400px; object-fit: cover;">
-            }
-            else
-            {
-                <img src="/images/placeholder.jpg" class="img-fluid rounded mb-3" alt="No image available" style="max-height: 400px; object-fit: cover;">
-            }
+        <div class="col-md-6 mb-4">
+            <div class="image-container">
+                @if (!string.IsNullOrEmpty(Model.ProductPicture))
+                {
+                    <img src="@Model.ProductPicture" class="product-img" alt="@Model.Name">
+                }
+                else
+                {
+                    <img src="/images/placeholder.jpg" class="product-img" alt="No image available">
+                }
+            </div>
         </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm">
+        <div class="col-md-6 mb-4">
+            <div class="product-card shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">Product Details</h5>
                     <p class="card-text">
                         <strong>Name:</strong> @Model.Name<br />
-                        <strong>Price:</strong> @Model.Price<br />
-                        <strong>Stock:</strong> @Model.Stock<br />
+                        <strong>Price:</strong> $@Model.Price<br />
+                        <strong>Stock:</strong> @Model.Stock units<br />
                         <strong>SKU:</strong> @Model.SKU<br />
                         <strong>Supplier:</strong> @(Model.Supplier != null ? Model.Supplier.UserName : "Unknown Supplier")
                     </p>
-                    <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Back to Products</a>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-secondary mt-3">Back to Products</a>
                 </div>
             </div>
         </div>
