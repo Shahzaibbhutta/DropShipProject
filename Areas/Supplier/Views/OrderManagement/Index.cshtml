@@ -18,41 +18,50 @@
                     <th>Date</th>
                     <th>Amount</th>
                     <th>Status</th>
-                    <th class="text-center">Actions</th>
+                    <th class="text-center" style="min-width: 180px;">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach (var order in Model)
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var order in Model)
+                    {
+                        <tr>
+                            <td>@order.OrderNumber</td>
+                            <td>@order.DropShipper?.CompanyName</td>
+                            <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                            <td>@order.TotalAmount.ToString("C")</td> <!-- Formatted as currency -->
+                            <td>
+                                <span class="badge @GetStatusBadgeClass(order.Status)">
+                                    @order.Status
+                                </span>
+                            </td>
+                            <td class="text-center" style="min-width: 180px;">
+                                <div class="btn-group dropend">
+                                    <a asp-area="Supplier" asp-controller="OrderManagement" asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-info">
+                                        <i class="bi bi-eye"></i> View
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <span class="visually-hidden">Toggle Dropdown</span>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Pending')">Pending</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Processing')">Processing</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Shipped')">Shipped</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Delivered')">Delivered</a></li>
+                                        <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Return')">Return</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(@order.Id, 'Cancelled')">Cancelled</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
                 {
                     <tr>
-                        <td>@order.OrderNumber</td>
-                        <td>@order.DropShipper?.CompanyName</td>
-                        <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
-                        <td>@order.TotalAmount.ToString("C")</td> <!-- Format as currency -->
-                        <td>
-                            <span class="badge @GetStatusBadgeClass(order.Status)">
-                                @order.Status
-                            </span>
-                        </td>
-                        <td class="text-center">
-                            <div class="btn-group">
-                                <a asp-area="Supplier" asp-controller="OrderManagement" asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-info">
-                                    <i class="bi bi-eye"></i> View
-                                </a>
-                                <button type="button" class="btn btn-sm btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <span class="visually-hidden">Toggle Dropdown</span>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Pending')">Pending</a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Processing')">Processing</a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Shipped')">Shipped</a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Delivered')">Delivered</a></li>
-                                    <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Return')">Return</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(@order.Id, 'Cancelled')">Cancelled</a></li>
-                                </ul>
-                            </div>
-                        </td>
+                        <td colspan="6" class="text-center text-muted">No orders found.</td>
                     </tr>
                 }
             </tbody>
@@ -60,6 +69,7 @@
     </div>
 </div>
 
+<!-- Hidden Anti-Forgery Form -->
 <form id="antiForgeryForm" style="display:none;">
     @Html.AntiForgeryToken()
 </form>
