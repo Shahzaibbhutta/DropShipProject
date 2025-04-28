@@ -30,7 +30,7 @@
                             <td>@order.OrderNumber</td>
                             <td>@order.DropShipper?.CompanyName</td>
                             <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
-                            <td>@order.TotalAmount.ToString("C")</td> <!-- Formatted as currency -->
+                            <td>@order.TotalAmount</td> <!-- Formatted as currency -->
                             <td>
                                 <span class="badge @GetStatusBadgeClass(order.Status)">
                                     @order.Status
