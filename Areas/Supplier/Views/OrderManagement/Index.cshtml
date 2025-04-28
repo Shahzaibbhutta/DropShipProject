@@ -10,7 +10,7 @@
     <h2 class="mb-4 text-primary">Order Management</h2>
 
     <div class="table-responsive">
-        <table class="table table-bordered table-hover shadow-sm">
+        <table class="table table-bordered table-hover shadow-sm align-middle">
             <thead class="table-dark">
                 <tr>
                     <th>Order #</th>
@@ -18,7 +18,7 @@
                     <th>Date</th>
                     <th>Amount</th>
                     <th>Status</th>
-                    <th>Actions</th>
+                    <th class="text-center">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -26,24 +26,22 @@
                 {
                     <tr>
                         <td>@order.OrderNumber</td>
-                        <td>@order.DropShipper.CompanyName</td>
-                        <td>@order.OrderDate.ToString("d")</td>
-                        <td>@order.TotalAmount</td>
+                        <td>@order.DropShipper?.CompanyName</td>
+                        <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
+                        <td>@order.TotalAmount.ToString("C")</td> <!-- Format as currency -->
                         <td>
                             <span class="badge @GetStatusBadgeClass(order.Status)">
                                 @order.Status
                             </span>
                         </td>
-                        <td>
+                        <td class="text-center">
                             <div class="btn-group">
                                 <a asp-area="Supplier" asp-controller="OrderManagement" asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-info">
                                     <i class="bi bi-eye"></i> View
                                 </a>
-
-                                <button type="button" class="btn btn-sm btn-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                <button type="button" class="btn btn-sm btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
                                     <span class="visually-hidden">Toggle Dropdown</span>
                                 </button>
-
                                 <ul class="dropdown-menu">
                                     <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Pending')">Pending</a></li>
                                     <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Processing')">Processing</a></li>
@@ -54,7 +52,6 @@
                                     <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(@order.Id, 'Cancelled')">Cancelled</a></li>
                                 </ul>
                             </div>
-
                         </td>
                     </tr>
                 }
@@ -63,29 +60,34 @@
     </div>
 </div>
 
+<form id="antiForgeryForm" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
 @section Scripts {
     <script>
         function updateStatus(orderId, status) {
+            var token = $('#antiForgeryForm input[name="__RequestVerificationToken"]').val();
             $.ajax({
                 url: '@Url.Action("UpdateStatus", "OrderManagement", new { area = "Supplier" })',
                 type: 'POST',
                 data: { orderId: orderId, status: status },
                 headers: {
-                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                }
-            })
-                .done(function (response) {
+                    'RequestVerificationToken': token
+                },
+                success: function (response) {
                     if (response.success) {
                         location.reload();
                     } else {
                         console.error('Update failed:', response.message);
                         alert('Failed to update status: ' + response.message);
                     }
-                })
-                .fail(function (xhr, status, error) {
+                },
+                error: function (xhr, status, error) {
                     console.error('AJAX error:', error);
                     alert('Failed to update status: ' + error);
-                });
+                }
+            });
         }
     </script>
 }
@@ -97,10 +99,10 @@
         {
             "Pending" => "bg-warning text-dark",
             "Processing" => "bg-info text-white",
-            "Shipped" => "bg-success",
-            "Delivered" => "bg-primary",
+            "Shipped" => "bg-success text-white",
+            "Delivered" => "bg-primary text-white",
             "Return" => "bg-secondary",
-            "Cancelled" => "bg-danger",
+            "Cancelled" => "bg-danger text-white",
             _ => "bg-secondary"
         };
     }
