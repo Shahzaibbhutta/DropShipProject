@@ -26,27 +26,30 @@
                         {
                             @if (User.IsInRole("Supplier"))
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="Supplier" asp-controller="OrderManagement" asp-action="Index">Orders</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Product" asp-action="Index">Products</a>
-                                </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link text-dark" asp-area="Supplier" asp-controller="OrderManagement" asp-action="Index">Orders</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Product" asp-action="Index">Products</a>
+                                        </li>
+                                        <li class="nav-item">
+                                                            <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Product" asp-action="StockOverview">Stock Overview</a>
+                                        </li>
                             }
                             else if (User.IsInRole("DropShipper"))
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Order" asp-action="Index">Orders</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Order" asp-action="Create">New Order</a>
-                                </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Order" asp-action="Index">Orders</a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Order" asp-action="Create">New Order</a>
+                                        </li>
                             }
                         }
                     </ul>

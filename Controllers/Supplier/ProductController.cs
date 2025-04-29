@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DropShipProject.Areas.Supplier.Controllers
 {
@@ -23,7 +24,9 @@ namespace DropShipProject.Areas.Supplier.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
-            var products = _context.Products.Where(p => p.SupplierId == user.Id).ToList();
+            var products = await _context.Products
+                .Where(p => p.SupplierId == user.Id)
+                .ToListAsync();
             return View(products);
         }
 
@@ -36,11 +39,9 @@ namespace DropShipProject.Areas.Supplier.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Product product, IFormFile ProductPictureFile)
         {
-            // Remove SupplierId and ProductPicture from ModelState validation since they're set programmatically
             ModelState.Remove("SupplierId");
             ModelState.Remove("ProductPicture");
 
-            // Handle file upload
             if (ProductPictureFile != null && ProductPictureFile.Length > 0)
             {
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
@@ -50,17 +51,16 @@ namespace DropShipProject.Areas.Supplier.Controllers
                     ModelState.AddModelError("ProductPictureFile", "Only JPG, JPEG, PNG, and GIF files are allowed.");
                     return View(product);
                 }
-                if (ProductPictureFile.Length > 5 * 1024 * 1024) // 5MB limit
+                if (ProductPictureFile.Length > 5 * 1024 * 1024)
                 {
                     ModelState.AddModelError("ProductPictureFile", "File size must be less than 5MB.");
                     return View(product);
                 }
 
-                // Ensure the directory exists
                 var uploadsDir = Path.Combine(_webHostEnvironment.WebRootPath, "images/products");
                 try
                 {
-                    Directory.CreateDirectory(uploadsDir); // Creates the directory if it doesn't exist
+                    Directory.CreateDirectory(uploadsDir);
                 }
                 catch (Exception ex)
                 {
@@ -68,7 +68,6 @@ namespace DropShipProject.Areas.Supplier.Controllers
                     return View(product);
                 }
 
-                // Generate unique file name and save the file
                 var fileName = $"product-{Guid.NewGuid()}{extension}";
                 var filePath = Path.Combine(uploadsDir, fileName);
                 try
@@ -130,7 +129,6 @@ namespace DropShipProject.Areas.Supplier.Controllers
                 return BadRequest();
             }
 
-            // Remove SupplierId and ProductPicture from ModelState validation
             ModelState.Remove("SupplierId");
             ModelState.Remove("ProductPicture");
 
@@ -146,7 +144,6 @@ namespace DropShipProject.Areas.Supplier.Controllers
                 return Forbid();
             }
 
-            // Handle file upload if a new file is provided
             if (ProductPictureFile != null && ProductPictureFile.Length > 0)
             {
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
@@ -156,13 +153,12 @@ namespace DropShipProject.Areas.Supplier.Controllers
                     ModelState.AddModelError("ProductPictureFile", "Only JPG, JPEG, PNG, and GIF files are allowed.");
                     return View(product);
                 }
-                if (ProductPictureFile.Length > 5 * 1024 * 1024) // 5MB limit
+                if (ProductPictureFile.Length > 5 * 1024 * 1024)
                 {
                     ModelState.AddModelError("ProductPictureFile", "File size must be less than 5MB.");
                     return View(product);
                 }
 
-                // Ensure the directory exists
                 var uploadsDir = Path.Combine(_webHostEnvironment.WebRootPath, "images/products");
                 try
                 {
@@ -174,7 +170,6 @@ namespace DropShipProject.Areas.Supplier.Controllers
                     return View(product);
                 }
 
-                // Delete old image if it exists
                 if (!string.IsNullOrEmpty(existingProduct.ProductPicture))
                 {
                     var oldFilePath = Path.Combine(_webHostEnvironment.WebRootPath, existingProduct.ProductPicture.TrimStart('/'));
@@ -209,6 +204,109 @@ namespace DropShipProject.Areas.Supplier.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ManageStock(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var product = await _context.Products
+                .Include(p => p.StockTransactions)
+                .FirstOrDefaultAsync(p => p.Id == id && p.SupplierId == user.Id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            var viewModel = new StockManagementViewModel
+            {
+                ProductId = product.Id,
+                ProductName = product.Name,
+                SKU = product.SKU,
+                CurrentStock = product.Stock,
+                StockTransactions = product.StockTransactions.Select(st => new StockTransactionViewModel
+                {
+                    Id = st.Id,
+                    Quantity = st.Quantity,
+                    TransactionType = st.TransactionType,
+                    TransactionDate = st.TransactionDate,
+                    Notes = st.Notes,
+                    OrderId = st.OrderId
+                }).OrderByDescending(st => st.TransactionDate).ToList()
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddStock(StockManagementViewModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var product = await _context.Products
+                .FirstOrDefaultAsync(p => p.Id == model.ProductId && p.SupplierId == user.Id);
+
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+           if (!ModelState.IsValid)
+           {
+                product.Stock += model.QuantityToAdd;
+
+                var stockTransaction = new StockTransaction
+                {
+                    ProductId = product.Id,
+                    Quantity = model.QuantityToAdd,
+                    TransactionType = "StockIn",
+                    TransactionDate = DateTime.UtcNow,
+                    Notes = model.Notes
+                };
+
+                _context.StockTransactions.Add(stockTransaction);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = "Stock added successfully.";
+                return RedirectToAction(nameof(ManageStock), new { id = model.ProductId });
+            }
+
+            model.ProductName = product.Name;
+            model.SKU = product.SKU;
+            model.CurrentStock = product.Stock;
+            model.StockTransactions = await _context.StockTransactions
+                .Where(st => st.ProductId == product.Id)
+                .Select(st => new StockTransactionViewModel
+                {
+                    Id = st.Id,
+                    Quantity = st.Quantity,
+                    TransactionType = st.TransactionType,
+                    TransactionDate = st.TransactionDate,
+                    Notes = st.Notes,
+                    OrderId = st.OrderId
+                })
+                .OrderByDescending(st => st.TransactionDate)
+                .ToListAsync();
+
+            return View("ManageStock", model);
+        }
+
+        public async Task<IActionResult> StockOverview()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var products = await _context.Products
+                .Where(p => p.SupplierId == user.Id)
+                .Select(p => new StockManagementViewModel
+                {
+                    ProductId = p.Id,
+                    ProductName = p.Name,
+                    SKU = p.SKU,
+                    CurrentStock = p.Stock
+                })
+                .ToListAsync();
+
+            return View(products);
         }
     }
 }

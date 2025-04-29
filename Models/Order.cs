@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace DropShipProject.Models
 {
@@ -90,5 +88,40 @@ namespace DropShipProject.Models
         [Required] // Explicitly mark as required (already implied by int)
         public int SupplierId { get; set; }
         public User Supplier { get; set; } // Navigation property, optional
+        public List<StockTransaction> StockTransactions { get; set; } = new List<StockTransaction>(); // Add navigation property
+    }
+    public class StockTransaction
+    {
+        public int Id { get; set; }
+        public int ProductId { get; set; }
+        public Product Product { get; set; }
+        public int Quantity { get; set; } // Positive for StockIn, Negative for StockOut
+        public string TransactionType { get; set; } // "StockIn" or "StockOut"
+        public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
+        public int? OrderId { get; set; } // Optional, links to Order for StockOut
+        public Order Order { get; set; } // Navigation property
+        public string Notes { get; set; } // Optional notes (e.g., reason for stock adjustment)
+    }
+    public class StockManagementViewModel
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; }
+        public string SKU { get; set; }
+        public int CurrentStock { get; set; }
+        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Quantity must be at least 1.")]
+        public int QuantityToAdd { get; set; }
+        public string Notes { get; set; }
+        public List<StockTransactionViewModel> StockTransactions { get; set; } = new List<StockTransactionViewModel>();
+    }
+
+    public class StockTransactionViewModel
+    {
+        public int Id { get; set; }
+        public int Quantity { get; set; }
+        public string TransactionType { get; set; }
+        public DateTime TransactionDate { get; set; }
+        public string Notes { get; set; }
+        public int? OrderId { get; set; }
     }
 }

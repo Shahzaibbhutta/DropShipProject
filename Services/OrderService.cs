@@ -31,9 +31,11 @@ namespace DropShipProject.Services
                 CustomerMobile = model.CustomerMobile,
                 ShippingAddress = model.ShippingAddress,
                 City = model.City,
-                CourierService = model.CourierService
+                CourierService = model.CourierService,
+                OrderItems = new List<OrderItem>()
             };
 
+            // Validate and add order items, check stock
             foreach (var item in model.Items)
             {
                 var product = await _context.Products
@@ -45,8 +47,9 @@ namespace DropShipProject.Services
                 }
                 if (product.Stock < item.Quantity)
                 {
-                    throw new InvalidOperationException($"Insufficient stock for {product.Name}.");
+                    throw new InvalidOperationException($"Insufficient stock for {product.Name}. Available: {product.Stock}, Requested: {item.Quantity}.");
                 }
+
                 order.OrderItems.Add(new OrderItem
                 {
                     ProductId = product.Id,
@@ -55,8 +58,34 @@ namespace DropShipProject.Services
                 });
             }
 
+            // Calculate total amount
             order.TotalAmount = order.OrderItems.Sum(i => i.Quantity * i.UnitPrice);
+
+            // Add order to context
             _context.Orders.Add(order);
+            await _context.SaveChangesAsync(); // Save order to generate Order.Id
+
+            // Deduct stock and record StockOut transactions
+            foreach (var item in order.OrderItems)
+            {
+                var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == item.ProductId);
+                if (product != null)
+                {
+                    product.Stock -= item.Quantity;
+
+                    var stockTransaction = new StockTransaction
+                    {
+                        ProductId = product.Id,
+                        Quantity = -item.Quantity, // Negative for StockOut
+                        TransactionType = "StockOut",
+                        OrderId = order.Id,
+                        TransactionDate = DateTime.UtcNow,
+                        Notes = $"Stock deducted for order {order.OrderNumber}"
+                    };
+                    _context.StockTransactions.Add(stockTransaction);
+                }
+            }
+
             await _context.SaveChangesAsync();
             return order;
         }
