@@ -94,6 +94,46 @@
 <div class="container my-5">
     <h1 class="store-header mb-5 text-center">Welcome to Our Store</h1>
 
+    <!-- Recommended Section -->
+    @{
+        var recommendedProducts = ViewData["RecommendedProducts"] as List<Product>;
+    }
+    @if (recommendedProducts != null && recommendedProducts.Any())
+    {
+        <h2 class="supplier-title mb-4">Recommended Products</h2>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
+            @foreach (var product in recommendedProducts)
+            {
+                <div class="col">
+                    <div class="product-card h-100 shadow-sm">
+                        <div class="overflow-hidden">
+                            @if (!string.IsNullOrEmpty(product.ProductPicture))
+                            {
+                                <img src="@product.ProductPicture" class="product-img" alt="@product.Name">
+                            }
+                            else
+                            {
+                                <img src="/images/placeholder.jpg" class="product-img" alt="No image available">
+                            }
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">@product.Name</h5>
+                            <p class="card-text">
+                                <strong>Price:</strong> @product.Price<br />
+                                <strong>Stock:</strong> @product.Stock units<br />
+                                <strong>SKU:</strong> @product.SKU
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 text-center pb-3">
+                            <a href="@Url.Action("Details", "Home", new { id = product.Id })" class="btn btn-primary">View Details</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Existing Supplier-Grouped Products -->
     @if (Model == null || !Model.Any())
     {
         <div class="no-products text-center">

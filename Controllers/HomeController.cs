@@ -17,7 +17,6 @@ namespace DropShipProject.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Fetch products with their suppliers and group by supplier
             var productsBySupplier = await _context.Products
                 .Include(p => p.Supplier)
                 .GroupBy(p => new
@@ -31,6 +30,34 @@ namespace DropShipProject.Controllers
                     Products = g.ToList()
                 })
                 .ToListAsync();
+
+            var recommendedProducts = await _context.OrderItems
+                .Where(oi => oi.Order.Status == "Delivered")
+                .GroupBy(oi => oi.ProductId)
+                .Select(g => new
+                {
+                    ProductId = g.Key,
+                    TotalSold = g.Sum(oi => oi.Quantity)
+                })
+                .OrderByDescending(x => x.TotalSold)
+                .Take(10)
+                .Join(_context.Products.Include(p => p.Supplier),
+                    sale => sale.ProductId,
+                    product => product.Id,
+                    (sale, product) => product)
+                .ToListAsync();
+
+            if (!recommendedProducts.Any())
+            {
+                recommendedProducts = await _context.Products
+                    .Include(p => p.Supplier)
+                    .OrderBy(_ => Guid.NewGuid()) 
+                    .Take(10)
+                    .ToListAsync();
+            }
+
+            // Pass both to the view
+            ViewData["RecommendedProducts"] = recommendedProducts;
 
             return View(productsBySupplier);
         }
