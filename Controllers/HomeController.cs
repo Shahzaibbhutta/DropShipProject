@@ -32,7 +32,7 @@ namespace DropShipProject.Controllers
                 .ToListAsync();
 
             var recommendedProducts = await _context.OrderItems
-                .Where(oi => oi.Order.Status == "Delivered")
+                .Where(oi => new[] { "Shipped", "Delivered" }.Contains(oi.Order.Status))
                 .GroupBy(oi => oi.ProductId)
                 .Select(g => new
                 {
@@ -40,7 +40,7 @@ namespace DropShipProject.Controllers
                     TotalSold = g.Sum(oi => oi.Quantity)
                 })
                 .OrderByDescending(x => x.TotalSold)
-                .Take(10)
+                .Take(4)
                 .Join(_context.Products.Include(p => p.Supplier),
                     sale => sale.ProductId,
                     product => product.Id,
@@ -51,16 +51,16 @@ namespace DropShipProject.Controllers
             {
                 recommendedProducts = await _context.Products
                     .Include(p => p.Supplier)
-                    .OrderBy(_ => Guid.NewGuid()) 
-                    .Take(10)
+                    .OrderBy(_ => Guid.NewGuid())
+                    .Take(4)
                     .ToListAsync();
             }
 
-            // Pass both to the view
             ViewData["RecommendedProducts"] = recommendedProducts;
 
             return View(productsBySupplier);
         }
+
         public async Task<IActionResult> Details(int id)
         {
             var product = await _context.Products
@@ -74,10 +74,67 @@ namespace DropShipProject.Controllers
 
             return View(product);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> GetOrderStatus([FromBody] OrderStatusRequest request)
+        {
+            var order = await _context.Orders
+                .FirstOrDefaultAsync(o => o.OrderNumber == request.OrderNumber);
+            if (order == null)
+            {
+                return Json(new { response = "Order not found." });
+            }
+            return Json(new { response = $"Order {request.OrderNumber} is {order.Status}." });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTopProducts()
+        {
+            var topProducts = await _context.OrderItems
+                .Where(oi => new[] { "Shipped", "Delivered" }.Contains(oi.Order.Status))
+                .GroupBy(oi => oi.ProductId)
+                .Select(g => new
+                {
+                    ProductId = g.Key,
+                    TotalSold = g.Sum(oi => oi.Quantity)
+                })
+                .OrderByDescending(x => x.TotalSold)
+                .Take(3)
+                .Join(_context.Products,
+                    sale => sale.ProductId,
+                    product => product.Id,
+                    (sale, product) => new
+                    {
+                        product.Name,
+                        product.Price
+                    })
+                .ToListAsync();
+
+            if (!topProducts.Any())
+            {
+                topProducts = await _context.Products
+                    .OrderBy(_ => Guid.NewGuid())
+                    .Take(3)
+                    .Select(p => new
+                    {
+                        p.Name,
+                        p.Price
+                    })
+                    .ToListAsync();
+            }
+
+            return Json(topProducts);
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+    }
+
+    public class OrderStatusRequest
+    {
+        public string OrderNumber { get; set; }
     }
 }

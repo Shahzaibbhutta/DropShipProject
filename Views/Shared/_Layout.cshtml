@@ -10,6 +10,91 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <!-- Chatbot CSS -->
+    <style>
+        #chatbot-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        #chatbot-header {
+            background: #007bff;
+            color: #fff;
+            padding: 10px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #chatbot-body {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        #chatbot-input {
+            border-top: 1px solid #ddd;
+            padding: 10px;
+            display: flex;
+        }
+
+            #chatbot-input input {
+                flex-grow: 1;
+                border: none;
+                outline: none;
+                padding: 5px;
+            }
+
+            #chatbot-input button {
+                background: #007bff;
+                color: #fff;
+                border: none;
+                padding: 5px 10px;
+                border-radius: 5px;
+            }
+
+        .chat-message {
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 10px;
+        }
+
+        .user-message {
+            background: #007bff;
+            color: #fff;
+            margin-left: 20%;
+        }
+
+        .bot-message {
+            background: #f1f1f1;
+            margin-right: 20%;
+        }
+
+        #chatbot-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #007bff;
+            color: #fff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1000;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -26,30 +111,30 @@
                         {
                             @if (User.IsInRole("Supplier"))
                             {
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-area="Supplier" asp-controller="OrderManagement" asp-action="Index">Orders</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Product" asp-action="Index">Products</a>
-                                        </li>
-                                        <li class="nav-item">
-                                                            <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Product" asp-action="StockOverview">Stock Overview</a>
-                                        </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="Supplier" asp-controller="OrderManagement" asp-action="Index">Orders</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Product" asp-action="Index">Products</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Product" asp-action="StockOverview">Stock Overview</a>
+                                </li>
                             }
                             else if (User.IsInRole("DropShipper"))
                             {
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Order" asp-action="Index">Orders</a>
-                                        </li>
-                                        <li class="nav-item">
-                                            <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Order" asp-action="Create">New Order</a>
-                                        </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Order" asp-action="Index">Orders</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Order" asp-action="Create">New Order</a>
+                                </li>
                             }
                         }
                     </ul>
@@ -64,6 +149,24 @@
         </main>
     </div>
 
+    <!-- Chatbot Widget -->
+    <div id="chatbot-toggle">
+        <i class="fas fa-comment"></i>
+    </div>
+    <div id="chatbot-container">
+        <div id="chatbot-header">
+            <span>Store Assistant</span>
+            <i class="fas fa-times" id="chatbot-close"></i>
+        </div>
+        <div id="chatbot-body">
+            <div class="chat-message bot-message">Hi! Welcome to E-Commerce Dropshipping! How can I help you today?</div>
+        </div>
+        <div id="chatbot-input">
+            <input type="text" id="chatbot-message" placeholder="Type a message..." />
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
     <footer class="border-top footer text-muted">
         <div class="container">
             © @DateTime.Now.Year - ECOMMERCE DROPSHIPPING
@@ -76,6 +179,84 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <!-- Custom JS -->
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- Chatbot JS -->
+    <script>
+        let waitingForOrderNumber = false;
+
+        // Toggle chatbot visibility
+        $('#chatbot-toggle').click(function () {
+            $('#chatbot-container').show();
+            $('#chatbot-toggle').hide();
+        });
+        $('#chatbot-close').click(function () {
+            $('#chatbot-container').hide();
+            $('#chatbot-toggle').show();
+        });
+
+        // Send message
+        function sendMessage() {
+            const input = $('#chatbot-message');
+            const message = input.val().trim().toLowerCase();
+            if (!message) return;
+
+            // Add user message
+            $('#chatbot-body').append(`<div class="chat-message user-message">${message}</div>`);
+
+            // Handle bot response
+            if (waitingForOrderNumber) {
+                $.ajax({
+                    url: '/Home/GetOrderStatus',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ orderNumber: message }),
+                    success: function (data) {
+                        appendBotMessage(data.response);
+                        waitingForOrderNumber = false;
+                    },
+                    error: function () {
+                        appendBotMessage('Error checking order status. Please try again.');
+                        waitingForOrderNumber = false;
+                    }
+                });
+            } else if (message.includes('product') || message.includes('item')) {
+                $.ajax({
+                    url: '/Home/GetTopProducts',
+                    type: 'GET',
+                    success: function (data) {
+                        const response = 'Here are our top products:<br>' + data.map(p => `- ${p.name} ($${p.price})`).join('<br>');
+                        appendBotMessage(response);
+                    },
+                    error: function () {
+                        appendBotMessage('Error fetching products. Please try again.');
+                    }
+                });
+            } else if (message.includes('order') || message.includes('track')) {
+                waitingForOrderNumber = true;
+                appendBotMessage('Please provide your order number.');
+            } else if (message.includes('support') || message.includes('help')) {
+                appendBotMessage('Contact our support team at support@ecommercedropshipping.com or ask about products!');
+            } else if (message.includes('hi') || message.includes('hello')) {
+                appendBotMessage('Hey there! How can I assist you today?');
+            } else {
+                appendBotMessage('Sorry, I didn’t understand that. Try asking about products, orders, or support!');
+            }
+
+            // Clear input and scroll to bottom
+            input.val('');
+            $('#chatbot-body').scrollTop($('#chatbot-body')[0].scrollHeight);
+        }
+
+        // Append bot message
+        function appendBotMessage(message) {
+            $('#chatbot-body').append(`<div class="chat-message bot-message">${message}</div>`);
+            $('#chatbot-body').scrollTop($('#chatbot-body')[0].scrollHeight);
+        }
+
+        // Send message on Enter key
+        $('#chatbot-message').keypress(function (e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
