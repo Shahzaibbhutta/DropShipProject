@@ -9,6 +9,18 @@
 <div class="container my-4">
     <h2 class="mb-4 text-primary">Order Management</h2>
 
+    <!-- Filter Section -->
+    <div class="mb-3">
+        <label class="fw-bold me-3">Filter by Status:</label>
+        @foreach (var status in new[] { "Pending", "Processing", "Shipped", "Delivered", "Return", "Cancelled" })
+        {
+            <div class="form-check form-check-inline">
+                <input class="form-check-input status-filter" type="checkbox" value="@status" id="filter_@status">
+                <label class="form-check-label" for="filter_@status">@status</label>
+            </div>
+        }
+    </div>
+
     <div class="table-responsive">
         <table class="table table-bordered table-hover shadow-sm align-middle">
             <thead class="table-dark">
@@ -21,41 +33,12 @@
                     <th class="text-center" style="min-width: 180px;">Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="ordersTableBody">
                 @if (Model != null && Model.Any())
                 {
                     foreach (var order in Model)
                     {
-                        <tr>
-                            <td>@order.OrderNumber</td>
-                            <td>@order.DropShipper?.CompanyName</td>
-                            <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
-                            <td>@order.TotalAmount</td> <!-- Formatted as currency -->
-                            <td>
-                                <span class="badge @GetStatusBadgeClass(order.Status)">
-                                    @order.Status
-                                </span>
-                            </td>
-                            <td class="text-center" style="min-width: 180px;">
-                                <div class="btn-group dropend">
-                                    <a asp-area="Supplier" asp-controller="OrderManagement" asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-info">
-                                        <i class="bi bi-eye"></i> View
-                                    </a>
-                                    <button type="button" class="btn btn-sm btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <span class="visually-hidden">Toggle Dropdown</span>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Pending')">Pending</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Processing')">Processing</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Shipped')">Shipped</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Delivered')">Delivered</a></li>
-                                        <li><a class="dropdown-item" href="#" onclick="updateStatus(@order.Id, 'Return')">Return</a></li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(@order.Id, 'Cancelled')">Cancelled</a></li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>
+                        @Html.Partial("_OrderRow", order)
                     }
                 }
                 else
@@ -87,18 +70,87 @@
                 },
                 success: function (response) {
                     if (response.success) {
-                        location.reload();
+                        loadFilteredOrders(); // reload filtered orders
                     } else {
-                        console.error('Update failed:', response.message);
                         alert('Failed to update status: ' + response.message);
                     }
                 },
                 error: function (xhr, status, error) {
-                    console.error('AJAX error:', error);
                     alert('Failed to update status: ' + error);
                 }
             });
         }
+
+        function loadFilteredOrders() {
+            var selectedStatuses = $(".status-filter:checked").map(function () {
+                return $(this).val();
+            }).get();
+
+            $.ajax({
+                url: '@Url.Action("GetFilteredOrders", "OrderManagement", new { area = "Supplier" })',
+                type: 'GET',
+                traditional: true, // Ensures array is serialized correctly
+                data: { statuses: selectedStatuses },
+                success: function (orders) {
+                    let html = '';
+                    if (orders.length === 0) {
+                        html = '<tr><td colspan="6" class="text-center text-muted">No orders found.</td></tr>';
+                    } else {
+                        for (const o of orders) {
+                            html += `
+        <tr>
+            <td>${o.orderNumber}</td>
+            <td>${o.dropShipperCompanyName ?? ''}</td>
+            <td>${new Date(o.orderDate).toLocaleDateString()}</td>
+            <td>${o.totalAmount}</td>
+            <td><span class="badge ${getStatusBadgeClass(o.status)}">${o.status}</span></td>
+            <td class="text-center" style="min-width: 180px;">
+                <div class="btn-group dropend">
+                    <a href="/Supplier/OrderManagement/Details/${o.id}" class="btn btn-sm btn-info">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                    <button type="button" class="btn btn-sm btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+                        <span class="visually-hidden">Toggle Dropdown</span>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="updateStatus(${o.id}, 'Pending')">Pending</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="updateStatus(${o.id}, 'Processing')">Processing</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="updateStatus(${o.id}, 'Shipped')">Shipped</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="updateStatus(${o.id}, 'Delivered')">Delivered</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="updateStatus(${o.id}, 'Return')">Return</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(${o.id}, 'Cancelled')">Cancelled</a></li>
+                    </ul>
+                </div>
+            </td>
+        </tr>`;
+                        }
+                    }
+                    $('#ordersTableBody').html(html);
+                },
+                error: function (xhr, status, error) {
+                    alert("Error loading orders: " + error);
+                }
+            });
+        }
+
+        function getStatusBadgeClass(status) {
+            switch (status) {
+                case 'Pending': return 'bg-warning text-dark';
+                case 'Processing': return 'bg-info text-white';
+                case 'Shipped': return 'bg-success text-white';
+                case 'Delivered': return 'bg-primary text-white';
+                case 'Return': return 'bg-secondary';
+                case 'Cancelled': return 'bg-danger text-white';
+                default: return 'bg-secondary';
+            }
+        }
+
+        $(document).ready(function () {
+            $(".status-filter").change(function () {
+                loadFilteredOrders();
+            });
+        });
     </script>
 }
 

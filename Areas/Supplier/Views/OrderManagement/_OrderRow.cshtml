@@ -1,0 +1,48 @@
+﻿@model Order
+
+<tr>
+    <td>@Model.OrderNumber</td>
+    <td>@Model.DropShipper?.CompanyName</td>
+    <td>@Model.OrderDate.ToString("dd/MM/yyyy")</td>
+    <td>@Model.TotalAmount</td>
+    <td>
+        <span class="badge @GetStatusBadgeClass(Model.Status)">
+            @Model.Status
+        </span>
+    </td>
+    <td class="text-center" style="min-width: 180px;">
+        <div class="btn-group dropend">
+            <a asp-area="Supplier" asp-controller="OrderManagement" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-info">
+                <i class="bi bi-eye"></i> View
+            </a>
+            <button type="button" class="btn btn-sm btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+                <span class="visually-hidden">Toggle Dropdown</span>
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#" onclick="updateStatus(@Model.Id, 'Pending')">Pending</a></li>
+                <li><a class="dropdown-item" href="#" onclick="updateStatus(@Model.Id, 'Processing')">Processing</a></li>
+                <li><a class="dropdown-item" href="#" onclick="updateStatus(@Model.Id, 'Shipped')">Shipped</a></li>
+                <li><a class="dropdown-item" href="#" onclick="updateStatus(@Model.Id, 'Delivered')">Delivered</a></li>
+                <li><a class="dropdown-item" href="#" onclick="updateStatus(@Model.Id, 'Return')">Return</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(@Model.Id, 'Cancelled')">Cancelled</a></li>
+            </ul>
+        </div>
+    </td>
+</tr>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        return status switch
+        {
+            "Pending" => "bg-warning text-dark",
+            "Processing" => "bg-info text-white",
+            "Shipped" => "bg-success text-white",
+            "Delivered" => "bg-primary text-white",
+            "Return" => "bg-secondary",
+            "Cancelled" => "bg-danger text-white",
+            _ => "bg-secondary"
+        };
+    }
+}

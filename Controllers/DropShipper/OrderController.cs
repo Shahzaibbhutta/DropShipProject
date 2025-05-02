@@ -112,5 +112,30 @@ namespace DropShipProject.Areas.DropShipper.Controllers
                 return View(model);
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> FilterByStatus(string[] statuses)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+
+            var orders = await _orderService.GetOrdersForDropShipper(user.Id);
+
+            if (statuses != null && statuses.Length > 0)
+            {
+                orders = orders.Where(o => statuses.Contains(o.Status, StringComparer.OrdinalIgnoreCase)).ToList();
+            }
+
+            var filteredOrders = orders.Select(o => new
+            {
+                id = o.Id,
+                orderNumber = o.OrderNumber,
+                supplierCompanyName = o.Supplier?.CompanyName ?? "N/A",
+                orderDate = o.OrderDate.ToString("o"),
+                totalAmount = o.TotalAmount,
+                status = o.Status
+            });
+
+            return Json(filteredOrders);
+        }
     }
 }
