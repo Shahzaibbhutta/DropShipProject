@@ -3,17 +3,102 @@
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Drop Shipper Dashboard"; // Set page title for _Layout.cshtml
+    ViewData["Title"] = "Drop Shipper Dashboard";
 }
+
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<div class="container my-4">
-    <h2 class="mb-4">DropShipper Dashboard</h2>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+    body {
+        background-color: #f4f6f9;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+        max-width: 1400px;
+    }
+
+    h2, h3 {
+        color: #1a3c6d;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .card {
+        border: none;
+        border-radius: 10px;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+        }
+
+    .card-header {
+        font-weight: 600;
+        border-bottom: none;
+        background: transparent;
+        color: #ffffff;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .card-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+    }
+
+    .chart-container {
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        width: 400px; /* Fixed width */
+        height: 400px; /* Fixed height */
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+        .chart-container canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+    .table-responsive {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .table th {
+        font-weight: 600;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .badge {
+        font-size: 0.85rem;
+        padding: 0.4em 0.8em;
+    }
+
+    .btn-info {
+        border-radius: 6px;
+    }
+</style>
+
+<div class="container my-5">
+    <h2 class="mb-5">DropShipper Dashboard</h2>
 
     <!-- Summary Cards -->
-    <div class="row g-4">
-        <!-- g-4 adds gutter spacing -->
+    <div class="row g-4 mb-5">
         <div class="col-md-4">
             <div class="card text-white bg-primary mb-3 shadow-sm">
                 <div class="card-header fw-bold">Pending Orders</div>
@@ -40,8 +125,28 @@
         </div>
     </div>
 
+    <!-- Charts Section -->
+    <h3 class="mt-5 mb-4">Order Analytics</h3>
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="chart-container">
+                <canvas id="statusBarChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="chart-container">
+                <canvas id="statusPieChart"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="chart-container">
+                <canvas id="amountLineChart"></canvas>
+            </div>
+        </div>
+    </div>
+
     <!-- Recent Orders Table -->
-    <h3 class="mt-5 mb-3">Recent Orders</h3>
+    <h3 class="mt-5 mb-4">Recent Orders</h3>
     <div class="table-responsive">
         <table class="table table-hover table-bordered align-middle">
             <thead class="table-dark">
@@ -59,9 +164,9 @@
                 {
                     <tr>
                         <td>@order.OrderNumber</td>
-                        <td>@order.Supplier.CompanyName</td>
+                        <td>@(order.Supplier?.CompanyName ?? "N/A")</td>
                         <td>@order.OrderDate.ToString("d")</td>
-                        <td>@order.TotalAmount</td>
+                        <td>@order.TotalAmount.ToString("C", new System.Globalization.CultureInfo("pk-PK"))</td>
                         <td>
                             <span class="badge @GetStatusBadgeClass(order.Status) rounded-pill">
                                 @order.Status
@@ -77,18 +182,233 @@
     </div>
 </div>
 
+@section Scripts {
+    <script>
+        // PKR formatter
+        const pkrFormatter = new Intl.NumberFormat('en-PK', {
+            style: 'currency',
+            currency: 'PKR',
+            minimumFractionDigits: 0
+        });
+
+        $(document).ready(function () {
+            fetchOrdersByStatus();
+            fetchOrderAmountOverTime();
+            fetchOrderStatusDistribution();
+
+            function fetchOrdersByStatus() {
+                $.ajax({
+                    url: '@Url.Action("GetOrdersByStatus", "Dashboard", new { area = "DropShipper" })',
+                    type: 'GET',
+                    success: function (data) {
+                        console.log('Orders by status:', data);
+                        renderBarChart(data);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching orders by status:', error);
+                    }
+                });
+            }
+
+            function fetchOrderAmountOverTime() {
+                $.ajax({
+                    url: '@Url.Action("GetOrderAmountOverTime", "Dashboard", new { area = "DropShipper" })',
+                    type: 'GET',
+                    success: function (data) {
+                        console.log('Order amount over time:', data);
+                        renderLineChart(data);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching order amount over time:', error);
+                    }
+                });
+            }
+
+            function fetchOrderStatusDistribution() {
+                $.ajax({
+                    url: '@Url.Action("GetOrderStatusDistribution", "Dashboard", new { area = "DropShipper" })',
+                    type: 'GET',
+                    success: function (data) {
+                        console.log('Order status distribution:', data);
+                        renderPieChart(data);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error fetching order status distribution:', error);
+                    }
+                });
+            }
+
+            function renderBarChart(data) {
+                const ctx = document.getElementById('statusBarChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Return', 'Cancelled'],
+                        datasets: [{
+                            label: 'Order Count',
+                            data: [
+                                data.pending || 0,
+                                data.processing || 0,
+                                data.shipped || 0,
+                                data.delivered || 0,
+                                data.return || 0,
+                                data.cancelled || 0
+                            ],
+                            backgroundColor: [
+                                '#ffc107',
+                                '#17a2b8',
+                                '#28a745',
+                                '#007bff',
+                                '#6c757d',
+                                '#dc3545'
+                            ],
+                            borderColor: '#ffffff',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Orders by Status',
+                                font: { size: 16, weight: 'bold' },
+                                padding: { top: 10, bottom: 20 }
+                            },
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Number of Orders',
+                                    font: { size: 12 }
+                                },
+                                grid: { color: '#e9ecef' }
+                            },
+                            x: {
+                                grid: { display: false }
+                            }
+                        },
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            function renderLineChart(data) {
+                const ctx = document.getElementById('amountLineChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(item => item.date),
+                        datasets: [{
+                            label: 'Total Amount (PKR)',
+                            data: data.map(item => item.totalAmount),
+                            borderColor: '#007bff',
+                            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Order Amount Over Time (PKR)',
+                                font: { size: 16, weight: 'bold' },
+                                padding: { top: 10, bottom: 20 }
+                            },
+                            legend: { display: true, position: 'top' }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Total Amount (PKR)',
+                                    font: { size: 12 }
+                                },
+                                ticks: {
+                                    callback: function (value) {
+                                        return pkrFormatter.format(value);
+                                    }
+                                },
+                                grid: { color: '#e9ecef' }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Date',
+                                    font: { size: 12 }
+                                },
+                                grid: { display: false }
+                            }
+                        },
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            function renderPieChart(data) {
+                const ctx = document.getElementById('statusPieChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Return', 'Cancelled'],
+                        datasets: [{
+                            data: [
+                                data.pending || 0,
+                                data.processing || 0,
+                                data.shipped || 0,
+                                data.delivered || 0,
+                                data.return || 0,
+                                data.cancelled || 0
+                            ],
+                            backgroundColor: [
+                                '#ffc107',
+                                '#17a2b8',
+                                '#28a745',
+                                '#007bff',
+                                '#6c757d',
+                                '#dc3545'
+                            ],
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Order Status Distribution',
+                                font: { size: 16, weight: 'bold' },
+                                padding: { top: 10, bottom: 20 }
+                            },
+                            legend: {
+                                position: 'bottom',
+                                labels: { font: { size: 11 } }
+                            }
+                        },
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+        });
+    </script>
+}
+
 @functions {
     string GetStatusBadgeClass(string status)
     {
         return status switch
         {
-            "Pending" => "bg-warning text-dark",   
+            "Pending" => "bg-warning text-dark",
             "Processing" => "bg-info text-dark",
-            "Shipped" => "bg-success",
-            "Delivered" => "bg-primary",
-            "Return" => "bg-secondary",
-            "Cancelled" => "bg-danger",
-            _ => "bg-secondary"
+            "Shipped" => "bg-success text-white",
+            "Delivered" => "bg-primary text-white",
+            "Return" => "bg-secondary text-white",
+            "Cancelled" => "bg-danger text-white",
+            _ => "bg-secondary text-white"
         };
     }
 }
