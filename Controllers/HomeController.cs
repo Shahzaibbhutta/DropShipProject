@@ -15,10 +15,60 @@ namespace DropShipProject.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string search, string sortBy, string sortOrder, decimal? minPrice, decimal? maxPrice)
         {
-            var productsBySupplier = await _context.Products
+            // Store filter parameters in ViewData for form persistence
+            ViewData["Search"] = search;
+            ViewData["SortBy"] = sortBy;
+            ViewData["SortOrder"] = sortOrder;
+            ViewData["MinPrice"] = minPrice;
+            ViewData["MaxPrice"] = maxPrice;
+
+            // Base query
+            var query = _context.Products
                 .Include(p => p.Supplier)
+                .AsQueryable();
+
+            // Apply search filter
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.Trim().ToLower();
+                query = query.Where(p => p.Name.ToLower().Contains(search) || p.SKU.ToLower().Contains(search));
+            }
+
+            // Apply price range filter
+            if (minPrice.HasValue)
+            {
+                query = query.Where(p => p.Price >= minPrice.Value);
+            }
+            if (maxPrice.HasValue)
+            {
+                query = query.Where(p => p.Price <= maxPrice.Value);
+            }
+
+            // Apply sorting
+            if (!string.IsNullOrEmpty(sortBy))
+            {
+                bool isAscending = sortOrder != "desc";
+                switch (sortBy.ToLower())
+                {
+                    case "price":
+                        query = isAscending ? query.OrderBy(p => p.Price) : query.OrderByDescending(p => p.Price);
+                        break;
+                    case "name":
+                        query = isAscending ? query.OrderBy(p => p.Name) : query.OrderByDescending(p => p.Name);
+                        break;
+                    case "stock":
+                        query = isAscending ? query.OrderBy(p => p.Stock) : query.OrderByDescending(p => p.Stock);
+                        break;
+                    case "sku":
+                        query = isAscending ? query.OrderBy(p => p.SKU) : query.OrderByDescending(p => p.SKU);
+                        break;
+                }
+            }
+
+            // Group products by supplier
+            var productsBySupplier = await query
                 .GroupBy(p => new
                 {
                     p.SupplierId,
@@ -31,6 +81,7 @@ namespace DropShipProject.Controllers
                 })
                 .ToListAsync();
 
+            // Get recommended products
             var recommendedProducts = await _context.OrderItems
                 .Where(oi => new[] { "Shipped", "Delivered" }.Contains(oi.Order.Status))
                 .GroupBy(oi => oi.ProductId)

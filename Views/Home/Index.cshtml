@@ -43,11 +43,11 @@
     .product-img {
         width: 100%;
         height: 250px;
-        object-fit: contain; /* Ensures full image is visible without cropping */
+        object-fit: contain;
         object-position: center;
         transition: transform 0.3s ease;
-        display: block; /* Prevents any unwanted spacing */
-        background-color: #f8f9fa; /* Light background for transparency or small images */
+        display: block;
+        background-color: #f8f9fa;
     }
 
     .product-card:hover .product-img {
@@ -85,14 +85,98 @@
 
     .no-products {
         background: #e9ecef;
-        border compañeros-radius: 10px;
+        border-radius: 10px;
         padding: 20px;
         font-size: 1.1rem;
     }
+
+    .filter-section {
+        background: #ffffff;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+        .filter-section label {
+            font-weight: 500;
+            color: #343a40;
+        }
+
+        .filter-section select,
+        .filter-section input {
+            border-radius: 8px;
+        }
+
+    .btn-filter {
+        background-color: #28a745;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+    }
+
+        .btn-filter:hover {
+            background-color: #218838;
+        }
+
+    .btn-reset {
+        background-color: #6c757d;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+    }
+
+        .btn-reset:hover {
+            background-color: #5a6268;
+        }
 </style>
 
 <div class="container my-5">
     <h1 class="store-header mb-5 text-center">Welcome to Our Store</h1>
+
+    <!-- Filter Section -->
+    <div class="filter-section">
+        <form asp-action="Index" method="get">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label for="search" class="form-label">Search</label>
+                    <input type="text" id="search" name="search" class="form-control" placeholder="Name or SKU" value="@ViewData["Search"]">
+                </div>
+                <div class="col-md-2">
+                    <label for="sortBy" class="form-label">Sort By</label>
+                    <select id="sortBy" name="sortBy" class="form-select">
+                        <option value="">Select...</option>
+                        <option value="price" selected="@(ViewData["SortBy"]?.ToString() == "price")">Price</option>
+                        <option value="name" selected="@(ViewData["SortBy"]?.ToString() == "name")">Name</option>
+                        <option value="stock" selected="@(ViewData["SortBy"]?.ToString() == "stock")">Stock</option>
+                        <option value="sku" selected="@(ViewData["SortBy"]?.ToString() == "sku")">SKU</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="sortOrder" class="form-label">Sort Order</label>
+                    <select id="sortOrder" name="sortOrder" class="form-select">
+                        <option value="asc" selected="@(ViewData["SortOrder"]?.ToString() == "asc")">Ascending</option>
+                        <option value="desc" selected="@(ViewData["SortOrder"]?.ToString() == "desc")">Descending</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="minPrice" class="form-label">Min Price</label>
+                    <input type="number" id="minPrice" name="minPrice" class="form-control" step="0.01" min="0" value="@ViewData["MinPrice"]">
+                </div>
+                <div class="col-md-2">
+                    <label for="maxPrice" class="form-label">Max Price</label>
+                    <input type="number" id="maxPrice" name="maxPrice" class="form-control" step="0.01" min="0" value="@ViewData["MaxPrice"]">
+                </div>
+                <br />
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-filter w-100">Filter</button>
+                </div>
+                <div class="col-md-1">
+                    <a href="@Url.Action("Index")" class="btn btn-reset w-100">Reset</a>
+                </div>
+            </div>
+        </form>
+    </div>
 
     <!-- Recommended Section -->
     @{
@@ -133,7 +217,7 @@
         </div>
     }
 
-    <!-- Existing Supplier-Grouped Products -->
+    <!-- Supplier-Grouped Products -->
     @if (Model == null || !Model.Any())
     {
         <div class="no-products text-center">
