@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>E-Commerce Dropshipping</title>
+    <title>ZAH DROPSHIPPING</title>
     <!-- Bootstrap 5.3.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
     <!-- Tailwind CSS via CDN -->
@@ -32,10 +32,17 @@
             font-size: 1.5rem;
             color: #fff !important;
             transition: color 0.3s;
+            display: flex;
+            align-items: center;
         }
 
         .navbar-brand:hover {
             color: #facc15 !important;
+        }
+
+        .navbar-logo {
+            height: 40px; /* Adjust based on your logo size */
+            margin-right: 0.5rem;
         }
 
         .nav-link {
@@ -198,6 +205,10 @@
             .navbar-brand {
                 font-size: 1.25rem;
             }
+
+            .navbar-logo {
+                height: 30px; /* Smaller logo for mobile */
+            }
         }
     </style>
 </head>
@@ -205,7 +216,10 @@
     <header>
         <nav class="navbar navbar-expand-sm">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">E-Commerce Dropshipping</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <img src="~/images/logo.png" alt="ZAH DROPSHIPPING Logo" class="navbar-logo" />
+                    ZAH DROPSHIPPING
+                </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -265,7 +279,7 @@
             <i class="fas fa-times" id="chatbot-close"></i>
         </div>
         <div id="chatbot-body">
-            <div class="chat-message bot-message">Hi! Welcome to E-Commerce Dropshipping! How can I help you today?</div>
+            <div class="chat-message bot-message">Hi! Welcome to ZAH DROPSHIPPING! How can I help you today?</div>
         </div>
         <div id="chatbot-input">
             <input type="text" id="chatbot-message" placeholder="Type a message..." />
@@ -280,7 +294,7 @@
             <div class="container">
                 <div class="row">
                     <div class="col-md-4 mb-3">
-                        <h5 class="font-bold">E-Commerce Dropshipping</h5>
+                        <h5 class="font-bold">ZAH DROPSHIPPING</h5>
                         <p class="text-sm">Your one-stop platform for seamless dropshipping and supplier management.</p>
                     </div>
                     <div class="col-md-4 mb-3">
@@ -288,7 +302,7 @@
                         <ul class="list-unstyled">
                             <li><a href="/">Home</a></li>
                             <li><a href="/Home/Privacy">Privacy Policy</a></li>
-                            <li><a href="mailto:support@ecommercedropshipping.com">Contact Support</a></li>
+                            <li><a href="mailto:support@zahdropshipping.com">Contact Support</a></li>
                         </ul>
                     </div>
                     <div class="col-md-4 mb-3">
@@ -301,7 +315,7 @@
                     </div>
                 </div>
                 <div class="text-center mt-4">
-                    <p class="mb-0">© @DateTime.Now.Year - E-Commerce Dropshipping</p>
+                    <p class="mb-0">© @DateTime.Now.Year - ZAH DROPSHIPPING</p>
                 </div>
             </div>
         </footer>
@@ -368,7 +382,7 @@
                 waitingForOrderNumber = true;
                 appendBotMessage('Please provide your order number.');
             } else if (message.includes('support') || message.includes('help')) {
-                appendBotMessage('Contact our support team at <a href="mailto:support@ecommercedropshipping.com">support@ecommercedropshipping.com</a> or ask about products!');
+                appendBotMessage('Contact our support team at <a href="mailto:support@zahdropshipping.com">support@zahdropshipping.com</a> or ask about products!');
             } else if (message.includes('hi') || message.includes('hello')) {
                 appendBotMessage('Hey there! How can I assist you today?');
             } else {
