@@ -273,35 +273,39 @@
         </div>
     </div>
 
-    <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <h5 class="font-bold">E-Commerce Dropshipping</h5>
-                    <p class="text-sm">Your one-stop platform for seamless dropshipping and supplier management.</p>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <h5 class="font-bold">Quick Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="/">Home</a></li>
-                        <li><a href="/Home/Privacy">Privacy Policy</a></li>
-                        <li><a href="mailto:support@ecommercedropshipping.com">Contact Support</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <h5 class="font-bold">Connect With Us</h5>
-                    <div class="d-flex gap-3">
-                        <a href="#"><i class="fab fa-facebook fa-lg"></i></a>
-                        <a href="#"><i class="fab fa-twitter fa-lg"></i></a>
-                        <a href="#"><i class="fab fa-instagram fa-lg"></i></a>
+    <!-- Footer -->
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <footer class="footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <h5 class="font-bold">E-Commerce Dropshipping</h5>
+                        <p class="text-sm">Your one-stop platform for seamless dropshipping and supplier management.</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <h5 class="font-bold">Quick Links</h5>
+                        <ul class="list-unstyled">
+                            <li><a href="/">Home</a></li>
+                            <li><a href="/Home/Privacy">Privacy Policy</a></li>
+                            <li><a href="mailto:support@ecommercedropshipping.com">Contact Support</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <h5 class="font-bold">Connect With Us</h5>
+                        <div class="d-flex gap-3">
+                            <a href="#"><i class="fab fa-facebook fa-lg"></i></a>
+                            <a href="#"><i class="fab fa-twitter fa-lg"></i></a>
+                            <a href="#"><i class="fab fa-instagram fa-lg"></i></a>
+                        </div>
                     </div>
                 </div>
+                <div class="text-center mt-4">
+                    <p class="mb-0">© @DateTime.Now.Year - E-Commerce Dropshipping</p>
+                </div>
             </div>
-            <div class="text-center mt-4">
-                <p class="mb-0">© @DateTime.Now.Year - E-Commerce Dropshipping</p>
-            </div>
-        </div>
-    </footer>
+        </footer>
+    }
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
