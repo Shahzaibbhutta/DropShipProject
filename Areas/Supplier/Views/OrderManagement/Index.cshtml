@@ -163,6 +163,14 @@
                 }
             });
 
+            // Event delegation for status update links
+            $(document).on('click', '#ordersTableBody .dropdown-item:not(.disabled)', function (e) {
+                e.preventDefault();
+                const orderId = $(this).closest('tr').find('.process-return').data('order-id') || $(this).closest('.btn-group').find('a[href*="/Details/"]').attr('href').split('/').pop();
+                const status = $(this).text().trim();
+                updateStatus(orderId, status);
+            });
+
             function loadFilteredOrders() {
                 const selectedStatuses = $(".status-filter:checked").map(function () {
                     return $(this).val();
@@ -177,7 +185,8 @@
                         currentPage = 1;
                         renderTable();
                     },
-                    error: function () {
+                    error: function (xhr, status, error) {
+                        console.error('Failed to load filtered orders:', status, error, xhr.responseText);
                         alert('Failed to load filtered orders.');
                     }
                 });
@@ -216,13 +225,13 @@
                                                     <span class="visually-hidden">Toggle Dropdown</span>
                                                 </button>
                                                 <ul class="dropdown-menu">
-                                                    <li><a class="dropdown-item ${o.status === 'Pending' ? 'disabled' : ''}" href="#" onclick="updateStatus(${o.id}, 'Pending')">Pending</a></li>
-                                                    <li><a class="dropdown-item ${o.status === 'Processing' ? 'disabled' : ''}" href="#" onclick="updateStatus(${o.id}, 'Processing')">Processing</a></li>
-                                                    <li><a class="dropdown-item ${o.status === 'Shipped' ? 'disabled' : ''}" href="#" onclick="updateStatus(${o.id}, 'Shipped')">Shipped</a></li>
-                                                    <li><a class="dropdown-item ${o.status === 'Delivered' ? 'disabled' : ''}" href="#" onclick="updateStatus(${o.id}, 'Delivered')">Delivered</a></li>
-                                                    <li><a class="dropdown-item ${o.status === 'Return' ? 'disabled' : ''}" href="#" onclick="updateStatus(${o.id}, 'Return')">Return</a></li>
+                                                    <li><a class="dropdown-item ${o.status === 'Pending' ? 'disabled' : ''}" href="#">Pending</a></li>
+                                                    <li><a class="dropdown-item ${o.status === 'Processing' ? 'disabled' : ''}" href="#">Processing</a></li>
+                                                    <li><a class="dropdown-item ${o.status === 'Shipped' ? 'disabled' : ''}" href="#">Shipped</a></li>
+                                                    <li><a class="dropdown-item ${o.status === 'Delivered' ? 'disabled' : ''}" href="#">Delivered</a></li>
+                                                    <li><a class="dropdown-item ${o.status === 'Return' ? 'disabled' : ''}" href="#">Return</a></li>
                                                     <li><hr class="dropdown-divider"></li>
-                                                    <li><a class="dropdown-item text-danger ${o.status === 'Cancelled' ? 'disabled' : ''}" href="#" onclick="updateStatus(${o.id}, 'Cancelled')">Cancelled</a></li>
+                                                    <li><a class="dropdown-item text-danger ${o.status === 'Cancelled' ? 'disabled' : ''}" href="#">Cancelled</a></li>
                                                 </ul>
                                             </div>
                                             ${returnButton}
@@ -230,7 +239,7 @@
                                     </tr>`;
                     });
                 }
-                $('#ordersTableBody').html(html);
+                $('#ordersTableBody').empty().html(html); // Clear table body before injecting new HTML
 
                 // Update pagination
                 const totalPages = Math.ceil(filteredOrders.length / rowsPerPage);
@@ -255,6 +264,12 @@
 
             function updateStatus(orderId, status) {
                 const token = $('#antiForgeryForm input[name="__RequestVerificationToken"]').val();
+                if (!token) {
+                    console.error('Antiforgery token not found.');
+                    alert('Security token missing. Please refresh the page.');
+                    return;
+                }
+                console.log(`Updating status for order ${orderId} to ${status}`);
                 $.ajax({
                     url: '@Url.Action("UpdateStatus", "OrderManagement", new { area = "Supplier" })',
                     type: 'POST',
@@ -264,20 +279,23 @@
                     },
                     success: function (response) {
                         if (response.success) {
-                            loadFilteredOrders();
+                            console.log(`Status updated successfully for order ${orderId} to ${status}`);
+                            loadFilteredOrders(); // Refresh table
                         } else {
+                            console.error('Failed to update status:', response.message);
                             alert('Failed to update status: ' + response.message);
                         }
                     },
                     error: function (xhr, status, error) {
-                        alert('Failed to update status: ' + error);
+                        console.error('UpdateStatus AJAX error:', status, error, xhr.responseText);
+                        alert('Failed to update status: ' + (xhr.responseJSON?.message || error));
                     }
                 });
             }
 
             // Process Return
             function bindReturnButtons() {
-                $('.process-return').click(function () {
+                $('.process-return').off('click').on('click', function () {
                     const orderId = $(this).data('order-id');
                     const orderNumber = $(this).data('order-number');
                     $('#modalOrderNumber').text(orderNumber);
@@ -295,6 +313,12 @@
                 }
 
                 const token = $('#antiForgeryForm input[name="__RequestVerificationToken"]').val();
+                if (!token) {
+                    console.error('Antiforgery token not found.');
+                    alert('Security token missing. Please refresh the page.');
+                    return;
+                }
+
                 $.ajax({
                     url: '@Url.Action("ProcessReturn", "OrderManagement", new { area = "Supplier" })',
                     type: 'POST',
@@ -313,8 +337,9 @@
                             alert('Failed to process return: ' + response.message);
                         }
                     },
-                    error: function () {
-                        alert('Failed to process return.');
+                    error: function (xhr, status, error) {
+                        console.error('ProcessReturn AJAX error:', status, error, xhr.responseText);
+                        alert('Failed to process return: ' + (xhr.responseJSON?.message || error));
                     }
                 });
             });
