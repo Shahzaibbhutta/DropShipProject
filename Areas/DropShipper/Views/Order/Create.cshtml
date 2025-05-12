@@ -6,247 +6,445 @@
     ViewData["Title"] = "Create New Order";
 }
 
-<!-- Bootstrap 5 and jQuery -->
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 <style>
+    /* Card Styling */
     .form-section {
-        background-color: #f9f9f9;
-        padding: 25px;
+        background: #ffffff;
         border-radius: 12px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        margin-bottom: 30px;
+        padding: 16px;
+        margin-bottom: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease;
+    }
+
+    .form-section:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
     }
 
     .section-header {
-        font-size: 1.3rem;
+        font-size: 1rem;
         font-weight: 600;
-        border-left: 5px solid #0d6efd;
+        color: #1f2937;
+        border-left: 4px solid #2563eb;
         padding-left: 10px;
-        margin-bottom: 20px;
+        margin-bottom: 12px;
+        cursor: pointer;
     }
 
+    /* Inputs and Selects */
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: Sex: 0.9rem;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .form-label {
+        font-weight: 500;
+        color: #1f2937;
+        font-size: 0.9rem;
+    }
+
+    /* Order Item */
     .order-item {
-        background-color: #fff;
-        border: 1px solid #e4e4e4;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 15px;
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+        transition: background 0.3s ease;
     }
 
-    .remove-item {
-        margin-top: 31px;
+    .order-item:hover {
+        background: #f1f5f9;
     }
 
+    /* Buttons */
+    .btn-primary {
+        background: #2563eb;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        transition: background 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: #1e40af;
+    }
+
+    .btn-accent {
+        background: #facc15;
+        color: #1f2937;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        transition: background 0.3s ease;
+    }
+
+    .btn-accent:hover {
+        background: #eab308;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 16px;
+        transition: background 0.3s ease;
+    }
+
+    .btn-danger:hover {
+        background: #c82333;
+    }
+
+    /* Alert */
     .alert {
-        position: relative;
-        top: -10px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+    }
+
+    /* Collapsible Sections */
+    .collapse:not(.show) {
+        display: none;
+    }
+
+    /* Total Price */
+    .total-price {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2563eb;
+    }
+
+    /* Responsive Adjustments */
+    media (max-width: 767px) {
+        .order-item .row {
+            flex-direction: column;
+            gap: 12px;
+        }
     }
 </style>
 
-<div class="container my-4">
-    <h2 class="mb-4">Create New Order</h2>
+<div class="container main-content">
+    <h2 class="mb-4 text-2xl font-bold" style="color: #2563eb;">Create New Order</h2>
     <div id="errorAlert" class="alert alert-danger d-none" role="alert"></div>
 
-    <form asp-action="Create" method="post" class="needs-validation" novalidate>
-        <div class="row mb-3">
+    <form id="orderForm" asp-action="Create" method="post" class="needs-validation" novalidate>
+        @Html.AntiForgeryToken()
+        <div class="row g-3">
+            <!-- Supplier Section -->
             <div class="col-md-6">
-                <label asp-for="SupplierId" class="form-label fw-bold">Supplier</label>
-                <select asp-for="SupplierId" class="form-select" asp-items="ViewBag.Suppliers" required onchange="loadProducts(this.value)">
-                    <option value="">Select a supplier</option>
-                </select>
-                <span asp-validation-for="SupplierId" class="text-danger"></span>
-            </div>
-        </div>
-
-        <h4 class="mb-3">Customer Details</h4>
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label asp-for="CustomerName" class="form-label fw-bold">Customer Name</label>
-                <input asp-for="CustomerName" class="form-control" required />
-                <span asp-validation-for="CustomerName" class="text-danger"></span>
-            </div>
-            <div class="col-md-6">
-                <label asp-for="CustomerMobile" class="form-label fw-bold">Customer Mobile</label>
-                <input asp-for="CustomerMobile" class="form-control" type="tel" required />
-                <span asp-validation-for="CustomerMobile" class="text-danger"></span>
-            </div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label asp-for="ShippingAddress" class="form-label fw-bold">Shipping Address</label>
-                <input asp-for="ShippingAddress" class="form-control" required />
-                <span asp-validation-for="ShippingAddress" class="text-danger"></span>
-            </div>
-            <div class="col-md-6">
-                <label asp-for="City" class="form-label fw-bold">City</label>
-                <input asp-for="City" class="form-control" required />
-                <span asp-validation-for="City" class="text-danger"></span>
-            </div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label asp-for="CourierService" class="form-label fw-bold">Courier Service</label>
-                <select asp-for="CourierService" class="form-select" required>
-                    <option value="">Select a courier service</option>
-                    @foreach (var courier in ViewBag.CourierServices)
-                    {
-                            <option value="@courier">@courier</option>
-                    }
-                </select>
-                <span asp-validation-for="CourierService" class="text-danger"></span>
-            </div>
-            <div class="col-md-6">
-                <label asp-for="PaymentMethod" class="form-label fw-bold">Payment Method</label>
-                <input asp-for="PaymentMethod" class="form-control" value="COD" readonly />
-            </div>
-        </div>
-
-        <h4 class="mb-3">Order Items</h4>
-        <div id="orderItems" class="mb-4">
-            @for (int i = 0; i < Model.Items.Count; i++)
-            {
-                    <div class="order-item row g-3 mb-3 align-items-end">
-                        <div class="col-md-3">
-                            <label class="form-label">SKU</label>
-                            <input name="Items[@i].SKU" class="form-control sku-input" required />
-                        </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Product</label>
-                            <input class="form-control product-name" readonly />
-                        </div>
-                        <div class="col-md-2">
-                            <label asp-for="Items[i].Quantity" class="form-label">Qty</label>
-                            <input asp-for="Items[i].Quantity" class="form-control" type="number" min="1" required />
-                            <span asp-validation-for="Items[i].Quantity" class="text-danger"></span>
-                        </div>
-                        <div class="col-md-2">
-                            <label asp-for="Items[i].UnitPrice" class="form-label">Unit Price</label>
-                            <input asp-for="Items[i].UnitPrice" class="form-control unit-price" readonly />
-                        </div>
-                        <div class="col-md-2">
-                            <button type="button" class="btn btn-danger remove-item w-100">Remove</button>
+                <div class="form-section">
+                    <h4 class="section-header" data-bs-toggle="collapse" data-bs-target="#supplierSection">Supplier</h4>
+                    <div id="supplierSection" class="collapse show">
+                        <div class="mb-3">
+                            <label asp-for="SupplierId" class="form-label">Supplier</label>
+                            <select asp-for="SupplierId" class="form-select" asp-items="ViewBag.Suppliers" required onchange="loadProducts(this.value)" aria-label="Select a supplier">
+                                <option value="">Select a supplier</option>
+                            </select>
+                            <span asp-validation-for="SupplierId" class="text-danger"></span>
                         </div>
                     </div>
-            }
-        </div>
+                </div>
+            </div>
 
-        <div class="row mb-4">
+            <!-- Notes Section -->
             <div class="col-md-6">
-                <button type="button" id="addItem" class="btn btn-outline-secondary w-100">Add Item</button>
+                <div class="form-section">
+                    <h4 class="section-header" data-bs-toggle="collapse" data-bs-target="#notesSection">Notes</h4>
+                    <div id="notesSection" class="collapse show">
+                        <div class="mb-3">
+                            <label asp-for="Notes" class="form-label">Order Notes</label>
+                            <textarea asp-for="Notes" class="form-control" rows="3" placeholder="Add any special instructions..." aria-label="Order notes" required></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="row mb-3">
-            <div class="col-md-6">
-                <label asp-for="Notes" class="form-label fw-bold">Notes</label>
-                <textarea asp-for="Notes" class="form-control" rows="3"></textarea>
+        <!-- Customer Details Section -->
+        <div class="form-section">
+            <h4 class="section-header" data-bs-toggle="collapse" data-bs-target="#customerSection">Customer Details</h4>
+            <div id="customerSection" class="collapse show">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="CustomerName" class="form-label">Customer Name</label>
+                        <input asp-for="CustomerName" class="form-control" required aria-label="Customer name" />
+                        <span asp-validation-for="CustomerName" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="CustomerMobile" class="form-label">Customer Mobile</label>
+                        <input asp-for="CustomerMobile" class="form-control" type="tel" required aria-label="Customer mobile" />
+                        <span asp-validation-for="CustomerMobile" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ShippingAddress" class="form-label">Shipping Address</label>
+                        <input asp-for="ShippingAddress" class="form-control" required aria-label="Shipping address" />
+                        <span asp-validation-for="ShippingAddress" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="City" class="form-label">City</label>
+                        <input asp-for="City" class="form-control" required aria-label="City" />
+                        <span asp-validation-for="City" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="CourierService" class="form-label">Courier Service</label>
+                        <select asp-for="CourierService" class="form-select" required aria-label="Select a courier service">
+                            <option value="">Select a courier service</option>
+                            @foreach (var courier in ViewBag.CourierServices)
+                            {
+                                <option value="@courier">@courier</option>
+                            }
+                        </select>
+                        <span asp-validation-for="CourierService" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="PaymentMethod" class="form-label">Payment Method</label>
+                        <input asp-for="PaymentMethod" class="form-control" value="COD" readonly aria-label="Payment method" />
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="row">
+        <!-- Order Items Section -->
+        <div class="form-section">
+            <h4 class="section-header" data-bs-toggle="collapse" data-bs-target="#itemsSection">Order Items</h4>
+            <div id="itemsSection" class="collapse show">
+                <div id="orderItems" class="mb-3">
+                    @for (int i = 0; i < Model.Items.Count; i++)
+                    {
+                        <div class="order-item row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label">SKU</label>
+                                <input name="Items[@i].SKU" class="form-control sku-input" required list="skuList" aria-label="Product SKU" />
+                                <datalist id="skuList"></datalist>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Product</label>
+                                <input class="form-control product-name" readonly aria-label="Product name" />
+                            </div>
+                            <div class="col-md-2">
+                                <label asp-for="Items[i].Quantity" class="form-label">Qty</label>
+                                <input asp-for="Items[i].Quantity" class="form-control quantity-input" type="number" min="1" required aria-label="Quantity" />
+                                <span asp-validation-for="Items[i].Quantity" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-2">
+                                <label asp-for="Items[i].UnitPrice" class="form-label">Unit Price</label>
+                                <input asp-for="Items[i].UnitPrice" class="form-control unit-price" readonly aria-label="Unit price" />
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-danger remove-item w-100" aria-label="Remove item">Remove</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <button type="button" id="addItem" class="btn btn-accent">Add Item</button>
+                    <div class="total-price">Total: PKR<span id="totalPrice">0.00</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit and Cancel Buttons -->
+        <div class="row g-3">
             <div class="col-md-6">
-                <input type="submit" value="Place Order" class="btn btn-primary w-100" />
+                <button type="button" id="submitOrder" class="btn btn-primary w-100">Place Order</button>
+            </div>
+            <div class="col-md-6">
+                <a href="@Url.Action("Index", "Order", new { area = "DropShipper" })" class="btn btn-secondary w-100" style="background: #e5e7eb; color: #1f2937;">Cancel</a>
             </div>
         </div>
     </form>
 </div>
 
-@section Scripts {
-        <partial name="_ValidationScriptsPartial" />
-        <script>
-            let products = [];
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #2563eb; color: #fff;">
+                <h5 class="modal-title" id="confirmModalLabel">Confirm Order</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to place this order with <span id="modalItemCount">0</span> item(s) for a total of PKR<span id="modalTotalPrice">0.00</span>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" style="background: #e5e7eb; color: #1f2937;" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="orderForm" class="btn btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-            function loadProducts(supplierId) {
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        let products = [];
+
+        function loadProducts(supplierId) {
+            if (!supplierId) {
+                $("#orderItems").empty();
+                products = [];
+                updateSKUList();
+                updateTotalPrice();
+                return;
+            }
+            $.get(`@Url.Action("GetProductsBySupplier", "Order", new { area = "DropShipper" })?supplierId=${supplierId}`)
+                .done(function (data) {
+                    products = data;
+                    updateSKUList();
+                    $(".sku-input").trigger("input");
+                })
+                .fail(function (jqXHR, textStatus, errorThrown) {
+                    console.error("Failed to load products:", textStatus, errorThrown);
+                    $("#errorAlert").text("Failed to load products. Please try again.").removeClass("d-none");
+                });
+        }
+
+        function updateSKUList() {
+            const dataList = $("#skuList");
+            dataList.empty();
+            products.forEach(p => {
+                dataList.append(`<option value="${p.sku}">${p.name}</option>`);
+            });
+        }
+
+        function updateProductDetails(skuInput) {
+            const sku = skuInput.val();
+            const product = products.find(p => p.sku === sku);
+            const itemRow = skuInput.closest(".order-item");
+            if (product) {
+                itemRow.find(".product-name").val(product.name);
+                itemRow.find(".unit-price").val(product.price.toFixed(2));
+            } else {
+                itemRow.find(".product-name").val("");
+                itemRow.find(".unit-price").val("");
+            }
+            updateTotalPrice();
+        }
+
+        function updateTotalPrice() {
+            let total = 0;
+            $(".order-item").each(function () {
+                const quantity = parseInt($(this).find(".quantity-input").val()) || 0;
+                const unitPrice = parseFloat($(this).find(".unit-price").val()) || 0;
+                total += quantity * unitPrice;
+            });
+            $("#totalPrice").text(total.toFixed(2));
+        }
+
+        $(document).ready(function () {
+            $("#addItem").click(function () {
+                const index = $("#orderItems .order-item").length;
+                const supplierId = $("#SupplierId").val();
                 if (!supplierId) {
-                    $("#orderItems").empty();
-                    products = [];
+                    $("#errorAlert").text("Please select a supplier first.").removeClass("d-none");
                     return;
                 }
-                $.get(`@Url.Action("GetProductsBySupplier", "Order", new { area = "DropShipper" })?supplierId=${supplierId}`)
-                    .done(function (data) {
-                        products = data;
-                    })
-                    .fail(function () {
-                        $("#errorAlert").text("Failed to load products.").removeClass("d-none");
-                    });
-            }
-
-            function updateProductDetails(skuInput) {
-                const sku = skuInput.val();
-                const product = products.find(p => p.sku === sku);
-                const itemRow = skuInput.closest(".order-item");
-                if (product) {
-                    itemRow.find(".product-name").val(product.name);
-                    itemRow.find(".unit-price").val(product.price);
-                } else {
-                    itemRow.find(".product-name").val("");
-                    itemRow.find(".unit-price").val("");
-                }
-            }
-
-            $(document).ready(function () {
-                $("#addItem").click(function () {
-                    var index = $("#orderItems .order-item").length;
-                    var supplierId = $("#SupplierId").val();
-                    if (!supplierId) {
-                        $("#errorAlert").text("Please select a supplier first.").removeClass("d-none");
-                        return;
-                    }
-                    $("#orderItems").append(`
-                        <div class="order-item row g-3 mb-3 align-items-end">
-                            <div class="col-md-3">
-                                <label class="form-label">SKU</label>
-                                <input name="Items[${index}].SKU" class="form-control sku-input" required />
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Product</label>
-                                <input class="form-control product-name" readonly />
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Qty</label>
-                                <input name="Items[${index}].Quantity" class="form-control" type="number" min="1" value="1" required />
-                            </div>
-                            <div class="col-md-2">
-                                <label class="form-label">Unit Price</label>
-                                <input name="Items[${index}].UnitPrice" class="form-control unit-price" readonly />
-                            </div>
-                            <div class="col-md-2">
-                                <button type="button" class="btn btn-danger remove-item w-100">Remove</button>
-                            </div>
+                $("#orderItems").append(`
+                    <div class="order-item row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label">SKU</label>
+                            <input name="Items[${index}].SKU" class="form-control sku-input" required list="skuList" aria-label="Product SKU" />
+                            <datalist id="skuList"></datalist>
                         </div>
-                    `);
-                    $(".sku-input:last").on("input", function () {
-                        updateProductDetails($(this));
-                    });
-                });
-
-                $(document).on("input", ".sku-input", function () {
+                        <div class="col-md-3">
+                            <label class="form-label">Product</label>
+                            <input class="form-control product-name" readonly aria-label="Product name" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Qty</label>
+                            <input name="Items[${index}].Quantity" class="form-control quantity-input" type="number" min="1" value="1" required aria-label="Quantity" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">Unit Price</label>
+                            <input name="Items[${index}].UnitPrice" class="form-control unit-price" readonly aria-label="Unit price" />
+                        </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-danger remove-item w-100" aria-label="Remove item">Remove</button>
+                        </div>
+                    </div>
+                `);
+                updateSKUList();
+                $(".sku-input:last").on("input", function () {
                     updateProductDetails($(this));
                 });
+                $(".quantity-input:last").on("input", updateTotalPrice);
+            });
 
-                $(document).on("click", ".remove-item", function () {
-                    $(this).closest(".order-item").remove();
-                    $("#orderItems .order-item").each(function (index) {
-                        $(this).find("input").each(function () {
-                            var name = $(this).attr("name");
-                            if (name) {
-                                $(this).attr("name", name.replace(/\[\d+\]/, `[${index}]`));
-                            }
-                        });
+            $(document).on("input", ".sku-input", function () {
+                updateProductDetails($(this));
+            });
+
+            $(document).on("input", ".quantity-input", updateTotalPrice);
+
+            $(document).on("click", ".remove-item", function () {
+                $(this).closest(".order-item").remove();
+                $("#orderItems .order-item").each(function (index) {
+                    $(this).find("input").each(function () {
+                        const name = $(this).attr("name");
+                        if (name) {
+                            $(this).attr("name", name.replace(/\[\d+\]/, `[${index}]`));
+                        }
                     });
                 });
+                updateTotalPrice();
+            });
 
-                $("form").on("submit", function (event) {
-                    if ($("#orderItems .order-item").length === 0) {
-                        event.preventDefault();
-                        $("#errorAlert").text("Please add at least one order item.").removeClass("d-none");
+            $("#submitOrder").click(function () {
+                const form = $("#orderForm")[0];
+                if (!form.checkValidity()) {
+                    form.classList.add('was-validated');
+                    $("#errorAlert").text("Please fill out all required fields.").removeClass("d-none");
+                    return;
+                }
+                if ($("#orderItems .order-item").length === 0) {
+                    $("#errorAlert").text("Please add at least one order item.").removeClass("d-none");
+                    return;
+                }
+                const itemCount = $("#orderItems .order-item").length;
+                const totalPrice = $("#totalPrice").text();
+                $("#modalItemCount").text(itemCount);
+                $("#modalTotalPrice").text(totalPrice);
+                $("#confirmModal").modal("show");
+            });
+
+            $("#orderForm").on("submit", function (e) {
+                e.preventDefault();
+                const form = $(this);
+                $.ajax({
+                    url: form.attr("action"),
+                    type: form.attr("method"),
+                    data: form.serialize(),
+                    success: function (response) {
+                        console.log("Form submitted successfully.");
+                        window.location.href = `@Url.Action("Index", "Order", new { area = "DropShipper" })`;
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error("Form submission failed:", textStatus, errorThrown);
+                        $("#errorAlert").text("Failed to place order. Please try again.").removeClass("d-none");
                     }
                 });
             });
-        </script>
+
+            // Bootstrap validation
+            (function () {
+                'use strict';
+                const forms = document.querySelectorAll('.needs-validation');
+                Array.from(forms).forEach(form => {
+                    form.addEventListener('submit', event => {
+                        if (!form.checkValidity()) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+                        form.classList.add('was-validated');
+                    }, false);
+                });
+            })();
+        });
+    </script>
 }

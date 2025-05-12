@@ -249,11 +249,11 @@ namespace DropShipProject.Areas.Supplier.Controllers
 
             if (product == null)
             {
-                return NotFound();
+                return Json(new { success = false, message = "Product not found." });
             }
 
-           if (!ModelState.IsValid)
-           {
+            if (!ModelState.IsValid)
+            {
                 product.Stock += model.QuantityToAdd;
 
                 var stockTransaction = new StockTransaction
@@ -268,28 +268,27 @@ namespace DropShipProject.Areas.Supplier.Controllers
                 _context.StockTransactions.Add(stockTransaction);
                 await _context.SaveChangesAsync();
 
-                TempData["Success"] = "Stock added successfully.";
-                return RedirectToAction(nameof(ManageStock), new { id = model.ProductId });
+                return Json(new
+                {
+                    success = true,
+                    currentStock = product.Stock,
+                    transaction = new
+                    {
+                        transactionDate = DateTime.UtcNow.ToString("g"),
+                        transactionType = "Add",
+                        quantity = model.QuantityToAdd,
+                        orderId = "-",
+                        notes = model.Notes ?? "-"
+                    }
+                });
             }
 
-            model.ProductName = product.Name;
-            model.SKU = product.SKU;
-            model.CurrentStock = product.Stock;
-            model.StockTransactions = await _context.StockTransactions
-                .Where(st => st.ProductId == product.Id)
-                .Select(st => new StockTransactionViewModel
-                {
-                    Id = st.Id,
-                    Quantity = st.Quantity,
-                    TransactionType = st.TransactionType,
-                    TransactionDate = st.TransactionDate,
-                    Notes = st.Notes,
-                    OrderId = st.OrderId
-                })
-                .OrderByDescending(st => st.TransactionDate)
-                .ToListAsync();
+            var errors = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList();
 
-            return View("ManageStock", model);
+            return Json(new { success = false, message = "Validation failed", errors });
         }
 
         public async Task<IActionResult> StockOverview()

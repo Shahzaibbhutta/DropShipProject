@@ -1,0 +1,143 @@
+﻿/* Theme Variables */
+:root {
+    --primary: #2563eb;
+    --accent: #facc15;
+    --secondary: #e5e7eb;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --background: #f9fafb;
+}
+
+/* General Styling */
+.main-content {
+    background: var(--background);
+    min-height: calc(100vh - 60px);
+    padding: 1.5rem 0;
+}
+
+h2 {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+/* Cards */
+.card {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+    .card:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+.card-header {
+    background: var(--primary);
+    color: #fff;
+    font-weight: 500;
+    border-radius: 12px 12px 0 0;
+    padding: 0.75rem 1rem;
+}
+
+.summary-card .card-header {
+    background: var(--primary);
+}
+
+.summary-card .card-body {
+    padding: 1rem;
+}
+
+.summary-card .card-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+/* Table */
+.table {
+    font-size: 0.9rem;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+    .table th {
+        background: var(--primary);
+        color: #fff;
+        font-weight: 500;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .table .sortable {
+        cursor: pointer;
+        position: relative;
+    }
+
+        .table .sortable::after {
+            content: '\f0dc';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            position: absolute;
+            right: 8px;
+            opacity: 0.5;
+        }
+
+        .table .sortable.asc::after {
+            content: '\f0de';
+            opacity: 1;
+        }
+
+        .table .sortable.desc::after {
+            content: '\f0dd';
+            opacity: 1;
+        }
+
+/* Buttons */
+.btn-primary {
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    transition: background 0.3s ease, transform 0.2s ease;
+    padding: 0.5rem 1rem;
+}
+
+    .btn-primary:hover {
+        background: #1e40af;
+        transform: translateY(-2px);
+    }
+
+.btn-secondary {
+    background: var(--secondary);
+    color: var(--text);
+    border: none;
+    border-radius: 8px;
+    transition: background 0.3s ease, transform 0.2s ease;
+    padding: 0.5rem 1rem;
+}
+
+    .btn-secondary:hover {
+        background: #d1d5db;
+        transform: translateY(-2px);
+    }
+
+.btn-warning {
+    background: var(--accent);
+    color: var(--text);
+    border: none;
+    border-radius: 8px;
+    transition: background 0.3s ease, transform 0.2s ease;
+    padding: 0.5rem 1rem;
+}
+
+    .btn-warning:hover {
+        background: #e0b013;
+        transform: translateY(-2px);
+    }
+
+/* Alert

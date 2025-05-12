@@ -1,138 +1,426 @@
-﻿@model DropShipProject.Models.Order
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+﻿@using DropShipProject.Models
+@model Order
+
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Order Details";
+
+    // Define status options for the dropdown
+    var statusOptions = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Pending", Text = "Pending" },
+        new SelectListItem { Value = "Processing", Text = "Processing" },
+        new SelectListItem { Value = "Shipped", Text = "Shipped" },
+        new SelectListItem { Value = "Delivered", Text = "Delivered" },
+        new SelectListItem { Value = "Return", Text = "Return" },
+        new SelectListItem { Value = "Cancelled", Text = "Cancelled" }
+    };
 }
 
-<div class="container my-4">
-    <h2 class="mb-4 text-primary">Order Details</h2>
-    <div id="errorAlert" class="alert alert-danger d-none" role="alert"></div>
+<style>
+    /* Card Styling */
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease;
+    }
 
-    <div class="card shadow-sm border">
-        <div class="card-body">
-            <h4 class="mb-3">Order Information</h4>
-            <dl class="row">
-                <dt class="col-sm-4 fw-bold">Order Number</dt>
-                <dd class="col-sm-8">@Model.OrderNumber</dd>
-                <dt class="col-sm-4 fw-bold">DropShipper</dt>
-                <dd class="col-sm-8">@Model.DropShipper?.UserName</dd>
-                <dt class="col-sm-4 fw-bold">Date</dt>
-                <dd class="col-sm-8">@Model.OrderDate.ToString("d")</dd>
-                <dt class="col-sm-4 fw-bold">Total Amount</dt>
-                <dd class="col-sm-8">@Model.TotalAmount</dd>
-                <dt class="col-sm-4 fw-bold">Status</dt>
-                <dd class="col-sm-8">
-                    <span class="badge @GetStatusBadgeClass(Model.Status)">
-                        @Model.Status
-                    </span>
-                </dd>
-                <dt class="col-sm-4 fw-bold">Payment Method</dt>
-                <dd class="col-sm-8">@Model.PaymentMethod</dd>
-            </dl>
+    .card:hover {
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
 
-            <h4 class="mb-3">Customer Details</h4>
-            <dl class="row">
-                <dt class="col-sm-4 fw-bold">Customer Name</dt>
-                <dd class="col-sm-8">@Model.CustomerName</dd>
-                <dt class="col-sm-4 fw-bold">Customer Mobile</dt>
-                <dd class="col-sm-8">@Model.CustomerMobile</dd>
-                <dt class="col-sm-4 fw-bold">Shipping Address</dt>
-                <dd class="col-sm-8">@Model.ShippingAddress</dd>
-                <dt class="col-sm-4 fw-bold">City</dt>
-                <dd class="col-sm-8">@Model.City</dd>
-                <dt class="col-sm-4 fw-bold">Courier Service</dt>
-                <dd class="col-sm-8">@Model.CourierService</dd>
-                <dt class="col-sm-4 fw-bold">Notes</dt>
-                <dd class="col-sm-8">@(string.IsNullOrEmpty(Model.Notes) ? "None" : Model.Notes)</dd>
-            </dl>
+    /* Section Headers */
+    .section-header {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        border-left: 4px solid #2563eb;
+        padding-left: 10px;
+        margin-bottom: 16px;
+        cursor: pointer;
+    }
 
-            <h4 class="mt-4">Order Items</h4>
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Picture</th>
-                            <th>Product</th>
-                            <th>SKU</th>
-                            <th>Quantity</th>
-                            <th>Unit Price</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in Model.OrderItems)
-                        {
-                            <tr>
-                                <td>
-                                    <img src="@item.Product?.ProductPicture" alt="@item.Product?.Name" style="max-width: 50px;" />
-                                </td>
-                                <td>@item.Product?.Name</td>
-                                <td>@item.Product?.SKU</td>
-                                <td>@item.Quantity</td>
-                                <td>@item.UnitPrice</td>
-                                <td>@(item.Quantity * item.UnitPrice)</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+    /* Grid Layout for Details */
+    .detail-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        font-size: 0.9rem;
+    }
 
-            <form id="updateStatusForm" class="mt-3">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="orderId" value="@Model.Id" />
-                <div class="row">
-                    <div class="col-md-6">
-                        <label for="status" class="fw-bold">Update Status</label>
-                        <select id="status" name="status" class="form-select">
-                            <option value="Pending">Pending</option>
-                            <option value="Processing">Processing</option>
-                            <option value="Shipped">Shipped</option>
-                            <option value="Delivered">Delivered</option>
-                            <option value="Return">Return</option>
-                            <option value="Cancelled">Cancelled</option>
-                        </select>
+    .detail-grid .fw-bold {
+        color: #1f2937;
+    }
+
+    .detail-grid .text-muted {
+        color: #6b7280;
+    }
+
+    /* Table Styling */
+    .table {
+        font-size: 0.9rem;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .table th {
+        background: #2563eb;
+        color: #fff;
+        font-weight: 500;
+    }
+
+    .table td {
+        vertical-align: middle;
+    }
+
+    .table img {
+        border-radius: 4px;
+    }
+
+    /* Buttons */
+    .btn-primary {
+        background: #2563eb;
+        border: none;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+    }
+
+    .btn-primary:hover {
+        background: #1e40af;
+    }
+
+    .btn-accent {
+        background: #facc15;
+        color: #1f2937;
+        border: none;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+    }
+
+    .btn-accent:hover {
+        background: #eab308;
+    }
+
+    .btn-secondary {
+        background: #e5e7eb;
+        color: #1f2937;
+        border: none;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+        background: #d1d5db;
+    }
+
+    /* Collapsible Sections */
+    .collapse:not(.show) {
+        display: none;
+    }
+
+    /* Responsive Adjustments */
+    media (max-width: 767px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="container main-content">
+    <h2 class="mb-4 text-2xl font-bold" style="color: #2563eb;">Order Details</h2>
+    <div id="errorAlert" class="alert alert-danger alert-dismissible d-none" role="alert">
+        <span id="errorMessage"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-4">
+            <!-- Order Information -->
+            <h4 class="section-header" data-bs-toggle="collapse" data-bs-target="#orderInfo">Order Information</h4>
+            <div id="orderInfo" class="collapse show">
+                <div class="detail-grid mb-4">
+                    <div>
+                        <div class="fw-bold">Order Number</div>
+                        <div class="d-flex align-items-center">
+                            @Model.OrderNumber
+                            <button class="btn btn-sm btn-secondary ms-2" id="copyOrderNumber" data-bs-toggle="tooltip" title="Copy order number" aria-label="Copy order number">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div class="col-md-6 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">Update</button>
+                    <div>
+                        <div class="fw-bold">DropShipper</div>
+                        <div>@(Model.DropShipper?.UserName ?? "N/A")</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold">Date</div>
+                        <div>@Model.OrderDate.ToString("d")</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold">Total Amount</div>
+                        <div>@Model.TotalAmount</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold">Status</div>
+                        <div>
+                            <span class="badge @GetStatusBadgeClass(Model.Status)">
+                                @Model.Status
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="fw-bold">Payment Method</div>
+                        <div>@(Model.PaymentMethod ?? "N/A")</div>
                     </div>
                 </div>
-            </form>
+            </div>
+
+            <!-- Customer Details -->
+            <h4 class="section-header" data-bs-toggle="collapse" data-bs-target="#customerInfo">Customer Details</h4>
+            <div id="customerInfo" class="collapse">
+                <div class="detail-grid mb-4">
+                    <div>
+                        <div class="fw-bold">Customer Name</div>
+                        <div>@(Model.CustomerName ?? "N/A")</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold">Customer Mobile</div>
+                        <div>@(Model.CustomerMobile ?? "N/A")</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold">Shipping Address</div>
+                        <div>@(Model.ShippingAddress ?? "N/A")</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold">City</div>
+                        <div>@(Model.City ?? "N/A")</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold">Courier Service</div>
+                        <div>@(Model.CourierService ?? "N/A")</div>
+                    </div>
+                    <div>
+                        <div class="fw-bold">Notes</div>
+                        <div>@(string.IsNullOrEmpty(Model.Notes) ? "None" : Model.Notes)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <h4 class="section-header" data-bs-toggle="collapse" data-bs-target="#orderItems">Order Items</h4>
+            <div id="orderItems" class="collapse show">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>Picture</th>
+                                <th>Product</th>
+                                <th>SKU</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.Product?.ProductPicture))
+                                        {
+                                            <img src="@item.Product.ProductPicture" alt="@(item.Product?.Name ?? "Product")" style="max-width: 40px;" />
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">No image</span>
+                                        }
+                                    </td>
+                                    <td>@(item.Product?.Name ?? "N/A")</td>
+                                    <td>@(item.Product?.SKU ?? "N/A")</td>
+                                    <td>@item.Quantity</td>
+                                    <td>@item.UnitPrice</td>
+                                    <td>@(item.Quantity * item.UnitPrice)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Status Update -->
+            <h4 class="section-header" data-bs-toggle="collapse" data-bs-target="#statusUpdate">Update Status</h4>
+            <div id="statusUpdate" class="collapse show">
+                <form id="updateStatusForm" class="mt-3">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="orderId" value="@Model.Id" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="status" class="fw-bold">Status</label>
+                            <select asp-for="Status" id="status" name="status" class="form-select" aria-label="Update order status" asp-items="@statusOptions"></select>
+                        </div>
+                        <div class="col-md-6 d-flex align-items-end">
+                            <button type="button" id="updateStatusButton" class="btn btn-primary w-100" disabled>Update</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Process Return -->
+            @if (Model.Status == "Return")
+            {
+                <div class="mt-3">
+                    <button class="btn btn-accent" id="processReturn" data-order-id="@Model.Id" data-order-number="@Model.OrderNumber" data-bs-toggle="tooltip" title="Process return request" aria-label="Process return">
+                        <i class="fas fa-undo"></i> Process Return
+                    </button>
+                </div>
+            }
         </div>
     </div>
 
     <div class="mt-4">
         <a asp-action="Index" asp-controller="OrderManagement" asp-area="Supplier" class="btn btn-secondary">
-            <i class="bi bi-arrow-left"></i> Back to Orders
+            <i class="fas fa-arrow-left"></i> Back to Orders
         </a>
+    </div>
+</div>
+
+<!-- Status Update Confirmation Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #2563eb; color: #fff;">
+                <h5 class="modal-title" id="statusModalLabel">Confirm Status Update</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to update the status of order <strong>@Model.OrderNumber</strong> to <strong id="newStatus"></strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="confirmStatusUpdate" class="btn btn-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Process Return Modal -->
+<div class="modal fade" id="returnModal" tabindex="-1" aria-labelledby="returnModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background: #2563eb; color: #fff;">
+                <h5 class="modal-title" id="returnModalLabel">Process Return</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Process return for order <strong id="modalOrderNumber"></strong>?</p>
+                <div class="mb-3">
+                    <label for="returnReason" class="form-label">Return Processing Notes</label>
+                    <textarea class="form-control" id="returnReason" rows="4" placeholder="Provide details for processing the return..." aria-label="Return processing notes"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-accent" id="confirmReturn">Process Return</button>
+            </div>
+        </div>
     </div>
 </div>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
-            $("#updateStatusForm").on("submit", function (event) {
-                event.preventDefault();
-                var form = $(this);
+            // Initialize tooltips
+            $('[data-bs-toggle="tooltip"]').tooltip();
+
+            // Copy Order Number
+            $("#copyOrderNumber").click(function () {
+                navigator.clipboard.writeText('@Model.OrderNumber').then(() => {
+                    $(this).attr('data-bs-original-title', 'Copied!').tooltip('show');
+                    setTimeout(() => {
+                        $(this).attr('data-bs-original-title', 'Copy order number').tooltip('hide');
+                    }, 1000);
+                });
+            });
+
+            // Enable/Disable Update Button
+            $("#status").change(function () {
+                const currentStatus = '@Model.Status';
+                const newStatus = $(this).val();
+                $("#updateStatusButton").prop('disabled', currentStatus === newStatus);
+            });
+
+            // Status Update
+            $("#updateStatusButton").click(function () {
+                const newStatus = $("#status").val();
+                $("#newStatus").text(newStatus);
+                $("#statusModal").modal('show');
+            });
+
+            $("#confirmStatusUpdate").click(function () {
+                const form = $("#updateStatusForm");
                 $.ajax({
                     url: '@Url.Action("UpdateStatus", "OrderManagement", new { area = "Supplier" })',
                     type: 'POST',
                     data: form.serialize(),
-                    dataType: 'json'
-                })
-                    .done(function (response) {
+                    dataType: 'json',
+                    success: function (response) {
                         if (response.success) {
                             location.reload();
                         } else {
-                            $("#errorAlert").text(response.message || "Failed to update status.").removeClass("d-none");
+                            $("#errorMessage").text(response.message || "Failed to update status.");
+                            $("#errorAlert").removeClass("d-none");
                         }
-                    })
-                    .fail(function (xhr, status, error) {
-                        console.error('AJAX error:', xhr.responseText, status, error);
-                        $("#errorAlert").text("Error updating status: " + (xhr.responseText || error)).removeClass("d-none");
-                    });
+                    },
+                    error: function (xhr, status, error) {
+                        $("#errorMessage").text("Error updating status: " + (xhr.responseText || error));
+                        $("#errorAlert").removeClass("d-none");
+                    }
+                });
+                $("#statusModal").modal('hide');
+            });
+
+            // Process Return
+            $("#processReturn").click(function () {
+                const orderId = $(this).data('order-id');
+                const orderNumber = $(this).data('order-number');
+                $("#modalOrderNumber").text(orderNumber);
+                $("#confirmReturn").data('order-id', orderId);
+                $("#returnModal").modal('show');
+            });
+
+            $("#confirmReturn").click(function () {
+                const orderId = $(this).data('order-id');
+                const reason = $("#returnReason").val().trim();
+                if (!reason) {
+                    $("#errorMessage").text("Please provide a reason for processing the return.");
+                    $("#errorAlert").removeClass("d-none");
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("ProcessReturn", "OrderManagement", new { area = "Supplier" })',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ orderId: orderId, reason: reason }),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            alert('Return processed successfully.');
+                            location.reload();
+                        } else {
+                            $("#errorMessage").text(response.message || "Failed to process return.");
+                            $("#errorAlert").removeClass("d-none");
+                        }
+                    },
+                    error: function () {
+                        $("#errorMessage").text("Failed to process return.");
+                        $("#errorAlert").removeClass("d-none");
+                    }
+                });
+                $("#returnModal").modal('hide');
+                $("#returnReason").val('');
             });
         });
     </script>
@@ -145,11 +433,11 @@
         {
             "Pending" => "bg-warning text-dark",
             "Processing" => "bg-info text-white",
-            "Shipped" => "bg-success",
-            "Delivered" => "bg-primary",
-            "Return" => "bg-secondary",
-            "Cancelled" => "bg-danger",
-            _ => "bg-secondary"
+            "Shipped" => "bg-success text-white",
+            "Delivered" => "bg-primary text-white",
+            "Return" => "bg-secondary text-white",
+            "Cancelled" => "bg-danger text-white",
+            _ => "bg-secondary text-white"
         };
     }
 }

@@ -1,91 +1,252 @@
-﻿@model StockManagementViewModel
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+﻿@using DropShipProject.Models
+@model StockManagementViewModel
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     ViewData["Title"] = "Manage Stock";
 }
 
-<div class="container py-4">
-    <div class="border-bottom pb-3 mb-4">
-        <h2 class="h4 text-dark">Manage Stock</h2>
-        <p class="mb-1"><strong>Product:</strong> @Model.ProductName (SKU: @Model.SKU)</p>
-        <p class="mb-0"><strong>Current Stock:</strong> <span class="badge bg-success">@Model.CurrentStock</span></p>
-    </div>
-
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            @TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+<style>
+    :root {
+        --primary: #2563eb;
+        --accent: #facc15;
+        --secondary: #e5e7eb;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --background: #f9fafb;
     }
 
-    <div class="card mb-4">
-        <div class="card-header bg-light">
-            <span class="fw-semibold text-secondary">Add Stock</span>
+    .main-content {
+        background: var(--background);
+        min-height: calc(100vh - 60px);
+        padding: 1.5rem 0;
+    }
+
+    h2 {
+        color: var(--primary);
+        font-weight: 600;
+    }
+
+    .card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transition: box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+    .card-header {
+        background: var(--primary);
+        color: #fff;
+        font-weight: 500;
+        border-radius: 12px 12px 0 0;
+        padding: 0.75rem 1rem;
+    }
+
+    .table {
+        font-size: 0.9rem;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 0;
+    }
+
+        .table th {
+            background: var(--primary);
+            color: #fff;
+            font-weight: 500;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .table .sortable {
+            cursor: pointer;
+            position: relative;
+        }
+
+            .table .sortable::after {
+                content: '\f0dc';
+                font-family: 'Font Awesome 6 Free';
+                font-weight: 900;
+                position: absolute;
+                right: 8px;
+                opacity: 0.5;
+            }
+
+            .table .sortable.asc::after {
+                content: '\f0de';
+                opacity: 1;
+            }
+
+            .table .sortable.desc::after {
+                content: '\f0dd';
+                opacity: 1;
+            }
+
+    .btn-primary {
+        background: var(--primary);
+        border: none;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            background: #1e40af;
+        }
+
+    .btn-secondary {
+        background: var(--secondary);
+        color: var(--text);
+        border: none;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+    }
+
+        .btn-secondary:hover {
+            background: #d1d5db;
+        }
+
+    .badge {
+        font-size: 0.8rem;
+        padding: 0.4em 0.8em;
+        border-radius: 12px;
+        background: var(--primary);
+        color: #fff;
+    }
+
+    .alert-success {
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-control {
+        border-radius: 8px;
+    }
+
+    .form-label {
+        color: var(--text);
+        font-weight: 500;
+    }
+
+    @@media (max-width: 767px) {
+        .table-responsive {
+            font-size: 0.85rem;
+        }
+    }
+</style>
+
+<div class="container main-content">
+    <h2 class="mb-3 text-2xl font-bold">Manage Stock</h2>
+
+    <div class="card mb-3">
+        <div class="card-body p-3">
+            <p class="mb-1"><strong>Product:</strong> @Model.ProductName (SKU: @Model.SKU)</p>
+            <p class="mb-0"><strong>Current Stock:</strong> <span class="badge">@Model.CurrentStock</span></p>
         </div>
-        <div class="card-body">
-            <form asp-action="AddStock" method="post">
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Success</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    Stock added successfully!
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">Add Stock</div>
+        <div class="card-body p-3">
+            <form id="addStockForm" asp-action="AddStock" method="post">
                 <input type="hidden" asp-for="ProductId" />
                 <div class="row g-3 align-items-center mb-2">
                     <div class="col-md-4">
-                        <label asp-for="QuantityToAdd" class="form-label small fw-semibold">Quantity to Add</label>
-                        <input asp-for="QuantityToAdd" class="form-control form-control-sm" placeholder="e.g., 100" />
-                        <span asp-validation-for="QuantityToAdd" class="text-danger small"></span>
+                        <label asp-for="QuantityToAdd" class="form-label">Quantity to Add</label>
+                        <input asp-for="QuantityToAdd" class="form-control" placeholder="e.g., 100" aria-describedby="quantityToAddHelp" />
+                        <span asp-validation-for="QuantityToAdd" class="text-danger"></span>
+                        <div id="quantityToAddHelp" class="form-text">Enter the quantity to add to stock.</div>
                     </div>
                     <div class="col-md-8">
-                        <label asp-for="Notes" class="form-label small fw-semibold">Notes</label>
-                        <input asp-for="Notes" class="form-control form-control-sm" placeholder="Optional notes" />
-                        <span asp-validation-for="Notes" class="text-danger small"></span>
+                        <label asp-for="Notes" class="form-label">Notes</label>
+                        <input asp-for="Notes" class="form-control" placeholder="Optional notes" aria-describedby="notesHelp" />
+                        <span asp-validation-for="Notes" class="text-danger"></span>
+                        <div id="notesHelp" class="form-text">Add any relevant notes for this transaction.</div>
                     </div>
                 </div>
                 <div class="text-end mt-3">
-                    <button type="submit" class="btn btn-sm btn-primary px-4">Add Stock</button>
+                    <button type="submit" class="btn btn-primary px-4" aria-label="Add stock to product">
+                        <i class="fas fa-plus"></i> Add Stock
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
     <div class="card">
-        <div class="card-header bg-light">
-            <span class="fw-semibold text-secondary">Stock Transaction History</span>
-        </div>
-        <div class="card-body">
+        <div class="card-header">Stock Transaction History</div>
+        <div class="card-body p-3">
             @if (Model.StockTransactions.Any())
             {
                 <div class="table-responsive">
-                    <table class="table table-sm table-bordered align-middle">
-                        <thead class="table-light small">
+                    <table class="table table-striped table-hover">
+                        <thead>
                             <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Quantity</th>
+                                <th class="sortable" data-sort="transactionDate">Date</th>
+                                <th class="sortable" data-sort="transactionType">Type</th>
+                                <th class="sortable" data-sort="quantity">Quantity</th>
                                 <th>Order ID</th>
                                 <th>Notes</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            @foreach (var t in Model.StockTransactions)
+                        <tbody id="transactionTableBody">
+                            @foreach (var t in Model.StockTransactions.Take(5))
                             {
                                 <tr>
                                     <td>@t.TransactionDate.ToString("g")</td>
                                     <td>@t.TransactionType</td>
                                     <td>@t.Quantity</td>
                                     <td>@(t.OrderId?.ToString() ?? "-")</td>
-                                    <td>@t.Notes</td>
+                                    <td>@(string.IsNullOrEmpty(t.Notes) ? "-" : t.Notes)</td>
                                 </tr>
                             }
                         </tbody>
                     </table>
                 </div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        <label for="rowsPerPage" class="me-2">Rows per page:</label>
+                        <select id="rowsPerPage" class="form-select d-inline-block w-auto">
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                            <option value="25">25</option>
+                        </select>
+                    </div>
+                    <nav aria-label="Transaction pagination">
+                        <ul class="pagination mb-0">
+                            <li class="page-item" id="prevPage"><a class="page-link" href="#">Previous</a></li>
+                            <li class="page-item" id="nextPage"><a class="page-link" href="#">Next</a></li>
+                        </ul>
+                    </nav>
+                </div>
             }
             else
             {
-                <p class="text-muted small mb-0">No stock transactions found.</p>
+                <p class="text-muted mb-0">No stock transactions found.</p>
             }
         </div>
     </div>
@@ -93,4 +254,156 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            let transactions = @Html.Raw(Json.Serialize(Model.StockTransactions.Select(t => new
+            {
+                transactionDate = t.TransactionDate.ToString("g"),
+                transactionType = t.TransactionType,
+                quantity = t.Quantity,
+                orderId = t.OrderId?.ToString() ?? "-",
+                notes = string.IsNullOrEmpty(t.Notes) ? "-" : t.Notes
+            })));
+            let currentPage = 1;
+            let rowsPerPage = 5;
+            let sortField = 'transactionDate';
+            let sortOrder = 'asc';
+
+            // Initial table render
+            renderTable();
+
+            // Rows per page change
+            $("#rowsPerPage").change(function () {
+                rowsPerPage = parseInt(this.value);
+                currentPage = 1;
+                renderTable();
+            });
+
+            // Pagination
+            $("#prevPage").click(function (e) {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+
+            $("#nextPage").click(function (e) {
+                e.preventDefault();
+                const totalPages = Math.ceil(transactions.length / rowsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+
+            // Sorting
+            $("th.sortable").click(function () {
+                const field = $(this).data("sort");
+                if (field === sortField) {
+                    sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortField = field;
+                    sortOrder = 'asc';
+                }
+                $("th.sortable").removeClass('asc desc');
+                $(this).addClass(sortOrder);
+                sortTransactions();
+                renderTable();
+            });
+
+            // AJAX form submission
+            $("#addStockForm").submit(function (e) {
+                e.preventDefault();
+                if (!this.checkValidity()) {
+                    $(this).addClass('was-validated');
+                    return;
+                }
+
+                $.ajax({
+                    url: $(this).attr('action'),
+                    type: 'POST',
+                    data: $(this).serialize(),
+                    success: function (response) {
+                        if (response.success) {
+                            // Update current stock
+                            $(".badge").text(response.currentStock);
+
+                            // Add new transaction to the top of the list
+                            transactions.unshift(response.transaction);
+
+                            // Reset form
+                            $("#addStockForm")[0].reset();
+                            $("#addStockForm").removeClass('was-validated');
+
+                            // Show success modal
+                            var successModal = new bootstrap.Modal(document.getElementById('successModal'));
+                            successModal.show();
+
+                            // Re-render table
+                            currentPage = 1;
+                            renderTable();
+                        } else {
+                            // Show error message
+                            alert('Error: ' + (response.message || 'Failed to add stock'));
+                            if (response.errors) {
+                                console.error(response.errors);
+                            }
+                        }
+                    },
+                    error: function (xhr) {
+                        alert('Error adding stock. Please try again.');
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+
+            function sortTransactions() {
+                transactions.sort((a, b) => {
+                    let valA = a[sortField];
+                    let valB = b[sortField];
+                    if (sortField === 'quantity') {
+                        valA = parseInt(valA);
+                        valB = parseInt(valB);
+                    } else if (sortField === 'transactionDate') {
+                        valA = new Date(valA);
+                        valB = new Date(valB);
+                    }
+                    if (sortOrder === 'asc') {
+                        return valA > valB ? 1 : -1;
+                    } else {
+                        return valA < valB ? 1 : -1;
+                    }
+                });
+            }
+
+            function renderTable() {
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                const paginatedTransactions = transactions.slice(start, end);
+
+                let html = '';
+                if (paginatedTransactions.length === 0) {
+                    html = '<tr><td colspan="5" class="text-center text-muted">No transactions found.</td></tr>';
+                } else {
+                    paginatedTransactions.forEach(t => {
+                        html += `
+                                    <tr>
+                                        <td>${t.transactionDate}</td>
+                                        <td>${t.transactionType}</td>
+                                        <td>${t.quantity}</td>
+                                        <td>${t.orderId}</td>
+                                        <td>${t.notes}</td>
+                                    </tr>`;
+                    });
+                }
+                $('#transactionTableBody').html(html);
+
+                const totalPages = Math.ceil(transactions.length / rowsPerPage);
+                $('#prevPage').toggleClass('disabled', currentPage === 1);
+                $('#nextPage').toggleClass('disabled', currentPage >= totalPages);
+            }
+        });
+    </script>
 }

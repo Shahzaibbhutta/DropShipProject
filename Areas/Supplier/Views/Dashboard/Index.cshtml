@@ -6,214 +6,343 @@
     ViewData["Title"] = "Supplier Dashboard";
 }
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-    body {
-        background-color: #f4f6f9;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* Theme Variables */
+    :root {
+        --primary: #2563eb;
+        --accent: #facc15;
+        --secondary: #e5e7eb;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --background: #f9fafb;
     }
 
-    .container {
-        max-width: 1400px;
+    /* General Styling */
+    .main-content {
+        background: var(--background);
+        min-height: calc(100vh - 60px);
+        padding: 2rem 0;
     }
 
     h2, h3 {
-        color: #1a3c6d;
+        color: var(--primary);
         font-weight: 600;
-        letter-spacing: 0.5px;
     }
 
-    .card {
-        border: none;
-        border-radius: 10px;
+    /* Cards */
+    .summary-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-        .card:hover {
+        .summary-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
         }
 
-    .card-header {
-        font-weight: 600;
-        border-bottom: none;
-        background: transparent;
-        color: #ffffff;
-    }
+        .summary-card .card-header {
+            background: var(--primary);
+            color: #fff;
+            font-weight: 500;
+            border-radius: 12px 12px 0 0;
+            padding: 0.75rem 1rem;
+        }
 
-    .card-body {
-        padding: 1.5rem;
-    }
+        .summary-card .card-body {
+            padding: 1rem;
+        }
 
-    .card-title {
-        font-size: 1.6rem;
-        font-weight: 700;
-    }
+        .summary-card .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+        }
 
+    /* Charts */
     .chart-container {
-        background: #ffffff;
-        border-radius: 10px;
-        padding: 20px;
-        margin-bottom: 20px;
+        background: #fff;
+        border-radius: 12px;
+        padding: 1rem;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        width: 400px;
-        height: 400px;
-        margin-left: auto;
-        margin-right: auto;
+        height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
         .chart-container canvas {
-            width: 100% !important;
-            height: 100% !important;
+            max-width: 100%;
+            max-height: 100%;
         }
 
-    .table-responsive {
-        border-radius: 10px;
+    /* Table */
+    .table {
+        font-size: 0.9rem;
+        border-radius: 12px;
         overflow: hidden;
+    }
+
+        .table th {
+            background: var(--primary);
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+    /* Buttons */
+    .btn-primary {
+        background: var(--primary);
+        border: none;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            background: #1e40af;
+        }
+
+    .btn-accent {
+        background: var(--accent);
+        color: var(--text);
+        border: none;
+        border-radius: 8px;
+        transition: background 0.3s ease;
+    }
+
+        .btn-accent:hover {
+            background: #eab308;
+        }
+
+    /* Badges */
+    .badge {
+        font-size: 0.8rem;
+        padding: 0.4em 0.8em;
+        border-radius: 12px;
+    }
+
+    /* Filters */
+    .filter-group {
+        background: #fff;
+        border-radius: 8px;
+        padding: 1rem;
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .table th {
+    /* Collapsible Sections */
+    .section-header {
+        font-size: 1.125rem;
         font-weight: 600;
-    }
-
-    .table td {
-        vertical-align: middle;
-    }
-
-    .badge {
-        font-size: 0.85rem;
-        padding: 0.4em 0.8em;
-    }
-
-    .btn-info {
-        border-radius: 6px;
+        color: var(--text);
+        border-left: 4px solid var(--primary);
+        padding-left: 10px;
+        margin-bottom: 16px;
+        cursor: pointer;
     }
 </style>
 
-<div class="container my-5">
-    <h2 class="mb-5">Supplier Dashboard</h2>
+<div class="container main-content">
+    <h2 class="mb-4 text-2xl font-bold">Supplier Dashboard</h2>
 
     <!-- Summary Cards -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary mb-3 shadow-sm">
-                <div class="card-header fw-bold">Pending Orders</div>
-                <div class="card-body">
-                    <h5 class="card-title">@Model.Count(o => o.Status == "Pending")</h5>
+    <h3 class="section-header" data-bs-toggle="collapse" data-bs-target="#summaryCards">Order Summary</h3>
+    <div id="summaryCards" class="collapse show">
+        <div class="row g-3 mb-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="summary-card">
+                    <div class="card-header">Pending Orders</div>
+                    <div class="card-body">
+                        <h5 class="card-title">@Model.Count(o => o.Status == "Pending")</h5>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-info mb-3 shadow-sm">
-                <div class="card-header fw-bold">Processing Orders</div>
-                <div class="card-body">
-                    <h5 class="card-title">@Model.Count(o => o.Status == "Processing")</h5>
+            <div class="col-md-6 col-lg-3">
+                <div class="summary-card">
+                    <div class="card-header">Processing Orders</div>
+                    <div class="card-body">
+                        <h5 class="card-title">@Model.Count(o => o.Status == "Processing")</h5>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-success mb-3 shadow-sm">
-                <div class="card-header fw-bold">Shipped Orders</div>
-                <div class="card-body">
-                    <h5 class="card-title">@Model.Count(o => o.Status == "Shipped")</h5>
+            <div class="col-md-6 col-lg-3">
+                <div class="summary-card">
+                    <div class="card-header">Shipped Orders</div>
+                    <div class="card-body">
+                        <h5 class="card-title">@Model.Count(o => o.Status == "Shipped")</h5>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-white bg-secondary mb-3 shadow-sm">
-                <div class="card-header fw-bold">Total Orders</div>
-                <div class="card-body">
-                    <h5 class="card-title">@Model.Count()</h5>
+            <div class="col-md-6 col-lg-3">
+                <div class="summary-card">
+                    <div class="card-header">Total Orders</div>
+                    <div class="card-body">
+                        <h5 class="card-title">@Model.Count()</h5>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Charts Section -->
-    <h3 class="mt-5 mb-4">Order Analytics</h3>
-    <div class="row g-4 justify-content-center">
-        <div class="col-md-6 col-lg-4">
-            <div class="chart-container">
-                <canvas id="statusBarChart"></canvas>
+    <h3 class="section-header" data-bs-toggle="collapse" data-bs-target="#chartsSection">Order Analytics</h3>
+    <div id="chartsSection" class="collapse show">
+        <div class="filter-group mb-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <label for="dateRange" class="fw-bold">Date Range</label>
+                    <select id="dateRange" class="form-select" aria-label="Select date range">
+                        <option value="7" selected>Last 7 Days</option>
+                        <option value="30">Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                        <option value="0">All Time</option>
+                    </select>
+                </div>
             </div>
         </div>
-        <div class="col-md-6 col-lg-4">
-            <div class="chart-container">
-                <canvas id="statusPieChart"></canvas>
+        <div class="row g-3 justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="chart-container">
+                    <canvas id="statusBarChart"></canvas>
+                </div>
             </div>
-        </div>
-        <div class="col-md-6 col-lg-4">
-            <div class="chart-container">
-                <canvas id="amountLineChart"></canvas>
+            <div class="col-md-6 col-lg-4">
+                <div class="chart-container">
+                    <canvas id="statusPieChart"></canvas>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="chart-container">
+                    <canvas id="amountLineChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
 
     <!-- Recent Orders Table -->
-    <h3 class="mt-5 mb-4">Recent Orders</h3>
-    <div class="table-responsive">
-        <table class="table table-hover table-bordered align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th scope="col">Order #</th>
-                    <th scope="col">DropShipper</th>
-                    <th scope="col">Date</th>
-                    <th scope="col">Amount</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var order in Model.Take(5))
-                {
+    <h3 class="section-header" data-bs-toggle="collapse" data-bs-target="#recentOrders">Recent Orders</h3>
+    <div id="recentOrders" class="collapse show">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead>
                     <tr>
-                        <td>@order.OrderNumber</td>
-                        <td>@(order.DropShipper?.CompanyName ?? "N/A")</td>
-                        <td>@order.OrderDate.ToString("d")</td>
-                        <td>@order.TotalAmount.ToString("C", new System.Globalization.CultureInfo("pk-PK"))</td>
-                        <td>
-                            <span class="badge @GetStatusBadgeClass(order.Status) rounded-pill">
-                                @order.Status
-                            </span>
-                        </td>
-                        <td>
-                            <a asp-area="Supplier" asp-action="Details" asp-controller="OrderManagement" asp-route-id="@order.Id" class="btn btn-sm btn-info">View</a>
-                        </td>
+                        <th scope="col">Order #</th>
+                        <th scope="col">DropShipper</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col">Status</th>
+                        <th scope="col">Actions</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody id="ordersTableBody">
+                    @foreach (var order in Model.Take(5))
+                    {
+                        <tr>
+                            <td>@order.OrderNumber</td>
+                            <td>@(order.DropShipper?.CompanyName ?? "N/A")</td>
+                            <td>@order.OrderDate.ToString("d")</td>
+                            <td>@order.TotalAmount.ToString("C")</td>
+                            <td>
+                                <span class="badge @GetStatusBadgeClass(order.Status)">
+                                    @order.Status
+                                </span>
+                            </td>
+                            <td>
+                                <a asp-area="Supplier" asp-action="Details" asp-controller="OrderManagement" asp-route-id="@order.Id" class="btn btn-sm btn-primary" aria-label="View order details">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+                <label for="rowsPerPage" class="me-2">Rows per page:</label>
+                <select id="rowsPerPage" class="form-select d-inline-block w-auto">
+                    <option value="5" selected>5</option>
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                </select>
+            </div>
+            <nav aria-label="Order pagination">
+                <ul class="pagination mb-0">
+                    <li class="page-item" id="prevPage"><a class="page-link" href="#">Previous</a></li>
+                    <li class="page-item" id="nextPage"><a class="page-link" href="#">Next</a></li>
+                </ul>
+            </nav>
+        </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        // PKR formatter
-        const pkrFormatter = new Intl.NumberFormat('en-PK', {
-            style: 'currency',
-            currency: 'PKR',
-            minimumFractionDigits: 0
-        });
-
         $(document).ready(function () {
+            let orders = @Html.Raw(Json.Serialize(Model.Select(o => new
+            {
+                id = o.Id,
+                orderNumber = o.OrderNumber,
+                dropShipperCompanyName = o.DropShipper?.CompanyName ?? "N/A",
+                orderDate = o.OrderDate.ToString("d"),
+                totalAmount = o.TotalAmount,
+                status = o.Status
+            })));
+            let currentPage = 1;
+            let rowsPerPage = 5;
+            let dateRange = '7';
+            let barChart, pieChart, lineChart;
+
+            // Initial chart rendering
             fetchOrdersByStatus();
             fetchOrderAmountOverTime();
             fetchOrderStatusDistribution();
+
+            // Date Range Filter
+            $("#dateRange").change(function () {
+                dateRange = $(this).val();
+                fetchOrdersByStatus();
+                fetchOrderAmountOverTime();
+                fetchOrderStatusDistribution();
+            });
+
+            // Pagination
+            $("#rowsPerPage").change(function () {
+                rowsPerPage = parseInt(this.value);
+                currentPage = 1;
+                renderTable();
+            });
+
+            $("#prevPage").click(function (e) {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+
+            $("#nextPage").click(function (e) {
+                e.preventDefault();
+                const totalPages = Math.ceil(orders.length / rowsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
 
             function fetchOrdersByStatus() {
                 $.ajax({
                     url: '@Url.Action("GetOrdersByStatus", "Dashboard", new { area = "Supplier" })',
                     type: 'GET',
+                    data: { days: dateRange },
                     success: function (data) {
-                        console.log('Orders by status:', data);
                         renderBarChart(data);
                     },
-                    error: function (xhr, status, error) {
-                        console.error('Error fetching orders by status:', error);
+                    error: function () {
+                        console.error('Error fetching orders by status.');
                     }
                 });
             }
@@ -222,12 +351,12 @@
                 $.ajax({
                     url: '@Url.Action("GetOrderAmountOverTime", "Dashboard", new { area = "Supplier" })',
                     type: 'GET',
+                    data: { days: dateRange },
                     success: function (data) {
-                        console.log('Order amount over time:', data);
                         renderLineChart(data);
                     },
-                    error: function (xhr, status, error) {
-                        console.error('Error fetching order amount over time:', error);
+                    error: function () {
+                        console.error('Error fetching order amount over time.');
                     }
                 });
             }
@@ -236,19 +365,20 @@
                 $.ajax({
                     url: '@Url.Action("GetOrderStatusDistribution", "Dashboard", new { area = "Supplier" })',
                     type: 'GET',
+                    data: { days: dateRange },
                     success: function (data) {
-                        console.log('Order status distribution:', data);
                         renderPieChart(data);
                     },
-                    error: function (xhr, status, error) {
-                        console.error('Error fetching order status distribution:', error);
+                    error: function () {
+                        console.error('Error fetching order status distribution.');
                     }
                 });
             }
 
             function renderBarChart(data) {
                 const ctx = document.getElementById('statusBarChart').getContext('2d');
-                new Chart(ctx, {
+                if (barChart) barChart.destroy();
+                barChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Return', 'Cancelled'],
@@ -266,91 +396,21 @@
                                 '#ffc107',
                                 '#17a2b8',
                                 '#28a745',
-                                '#007bff',
+                                '#2563eb',
                                 '#6c757d',
                                 '#dc3545'
                             ],
-                            borderColor: '#ffffff',
+                            borderColor: '#fff',
                             borderWidth: 1
                         }]
                     },
                     options: {
                         plugins: {
-                            title: {
-                                display: true,
-                                text: 'Orders by Status',
-                                font: { size: 16, weight: 'bold' },
-                                padding: { top: 10, bottom: 20 }
-                            },
-                            legend: { display: false }
+                            title: { display: true, text: 'Orders by Status', font: { size: 14, weight: 'bold' } }
                         },
                         scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Number of Orders',
-                                    font: { size: 12 }
-                                },
-                                grid: { color: '#e9ecef' }
-                            },
-                            x: {
-                                grid: { display: false }
-                            }
-                        },
-                        maintainAspectRatio: false
-                    }
-                });
-            }
-
-            function renderLineChart(data) {
-                const ctx = document.getElementById('amountLineChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: data.map(item => item.date),
-                        datasets: [{
-                            label: 'Total Amount (PKR)',
-                            data: data.map(item => item.totalAmount),
-                            borderColor: '#007bff',
-                            backgroundColor: 'rgba(0, 123, 255, 0.2)',
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    },
-                    options: {
-                        plugins: {
-                            title: {
-                                display: true,
-                                text: 'Order Amount Over Time (PKR)',
-                                font: { size: 16, weight: 'bold' },
-                                padding: { top: 10, bottom: 20 }
-                            },
-                            legend: { display: true, position: 'top' }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Total Amount (PKR)',
-                                    font: { size: 12 }
-                                },
-                                ticks: {
-                                    callback: function (value) {
-                                        return pkrFormatter.format(value);
-                                    }
-                                },
-                                grid: { color: '#e9ecef' }
-                            },
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Date',
-                                    font: { size: 12 }
-                                },
-                                grid: { display: false }
-                            }
+                            y: { beginAtZero: true, title: { display: true, text: 'Orders' } },
+                            x: { grid: { display: false } }
                         },
                         maintainAspectRatio: false
                     }
@@ -359,7 +419,8 @@
 
             function renderPieChart(data) {
                 const ctx = document.getElementById('statusPieChart').getContext('2d');
-                new Chart(ctx, {
+                if (pieChart) pieChart.destroy();
+                pieChart = new Chart(ctx, {
                     type: 'pie',
                     data: {
                         labels: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Return', 'Cancelled'],
@@ -376,42 +437,113 @@
                                 '#ffc107',
                                 '#17a2b8',
                                 '#28a745',
-                                '#007bff',
+                                '#2563eb',
                                 '#6c757d',
                                 '#dc3545'
                             ],
-                            borderColor: '#ffffff',
+                            borderColor: '#fff',
                             borderWidth: 2
                         }]
                     },
                     options: {
                         plugins: {
-                            title: {
-                                display: true,
-                                text: 'Order Status Distribution',
-                                font: { size: 16, weight: 'bold' },
-                                padding: { top: 10, bottom: 20 }
-                            },
-                            legend: {
-                                position: 'bottom',
-                                labels: { font: { size: 11 } }
-                            }
+                            title: { display: true, text: 'Status Distribution', font: { size: 14, weight: 'bold' } },
+                            legend: { position: 'bottom', labels: { font: { size: 10 } } }
                         },
                         maintainAspectRatio: false
                     }
                 });
             }
+
+            function renderLineChart(data) {
+                const ctx = document.getElementById('amountLineChart').getContext('2d');
+                if (lineChart) lineChart.destroy();
+                lineChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(item => item.date),
+                        datasets: [{
+                            label: 'Total Amount',
+                            data: data.map(item => item.totalAmount),
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            title: { display: true, text: 'Order Amount Over Time', font: { size: 14, weight: 'bold' } }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: { display: true, text: 'Amount' },
+                                ticks: { callback: value => value.toFixed(2) }
+                            },
+                            x: { title: { display: true, text: 'Date' }, grid: { display: false } }
+                        },
+                        maintainAspectRatio: false
+                    }
+                });
+            }
+
+            function renderTable() {
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                const paginatedOrders = orders.slice(start, end);
+
+                let html = '';
+                if (paginatedOrders.length === 0) {
+                    html = '<tr><td colspan="6" class="text-center text-muted">No orders found.</td></tr>';
+                } else {
+                    paginatedOrders.forEach(o => {
+                        html += `
+                                    <tr>
+                                        <td>${o.orderNumber}</td>
+                                        <td>${o.dropShipperCompanyName}</td>
+                                        <td>${o.orderDate}</td>
+                                        <td>${o.totalAmount.toFixed(2)}</td>
+                                        <td><span class="badge ${getStatusBadgeClass(o.status)}">${o.status}</span></td>
+                                        <td>
+                                            <a href="/Supplier/OrderManagement/Details/${o.id}" class="btn btn-sm btn-primary" aria-label="View order details">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>`;
+                    });
+                }
+                $('#ordersTableBody').html(html);
+
+                const totalPages = Math.ceil(orders.length / rowsPerPage);
+                $('#prevPage').toggleClass('disabled', currentPage === 1);
+                $('#nextPage').toggleClass('disabled', currentPage >= totalPages);
+            }
+
+            function getStatusBadgeClass(status) {
+                switch (status) {
+                    case 'Pending': return 'bg-warning text-dark';
+                    case 'Processing': return 'bg-info text-white';
+                    case 'Shipped': return 'bg-success text-white';
+                    case 'Delivered': return 'bg-primary text-white';
+                    case 'Return': return 'bg-secondary text-white';
+                    case 'Cancelled': return 'bg-danger text-white';
+                    default: return 'bg-secondary text-white';
+                }
+            }
+
+            // Initial table render
+            renderTable();
         });
     </script>
 }
-
 @functions {
     string GetStatusBadgeClass(string status)
     {
         return status switch
         {
             "Pending" => "bg-warning text-dark",
-            "Processing" => "bg-info text-dark",
+            "Processing" => "bg-info text-white",
             "Shipped" => "bg-success text-white",
             "Delivered" => "bg-primary text-white",
             "Return" => "bg-secondary text-white",

@@ -1,33 +1,39 @@
 ﻿@model Order
 
-<tr>
+<tr class="align-middle">
     <td>@Model.OrderNumber</td>
-    <td>@Model.DropShipper?.CompanyName</td>
+    <td>@(Model.DropShipper?.CompanyName ?? "N/A")</td>
     <td>@Model.OrderDate.ToString("dd/MM/yyyy")</td>
-    <td>@Model.TotalAmount</td>
+    <td>@Model.TotalAmount.ToString("C")</td>
     <td>
         <span class="badge @GetStatusBadgeClass(Model.Status)">
             @Model.Status
         </span>
     </td>
-    <td class="text-center" style="min-width: 180px;">
+    <td class="text-center">
         <div class="btn-group dropend">
-            <a asp-area="Supplier" asp-controller="OrderManagement" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm btn-info">
-                <i class="bi bi-eye"></i> View
+            <a asp-area="Supplier" asp-controller="OrderManagement" asp-action="Details" asp-route-id="@Model.Id" class="btn btn-sm text-white" style="background: #2563eb;" aria-label="View order details">
+                <i class="fas fa-eye"></i> View
             </a>
-            <button type="button" class="btn btn-sm btn-info dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+            <button type="button" class="btn btn-sm text-white dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" style="background: #2563eb;" aria-expanded="false">
                 <span class="visually-hidden">Toggle Dropdown</span>
             </button>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="#" onclick="updateStatus(@Model.Id, 'Pending')">Pending</a></li>
-                <li><a class="dropdown-item" href="#" onclick="updateStatus(@Model.Id, 'Processing')">Processing</a></li>
-                <li><a class="dropdown-item" href="#" onclick="updateStatus(@Model.Id, 'Shipped')">Shipped</a></li>
-                <li><a class="dropdown-item" href="#" onclick="updateStatus(@Model.Id, 'Delivered')">Delivered</a></li>
-                <li><a class="dropdown-item" href="#" onclick="updateStatus(@Model.Id, 'Return')">Return</a></li>
+                <li><a class="dropdown-item @(Model.Status == "Pending" ? "disabled" : "")" href="#" onclick="updateStatus(@Model.Id, 'Pending')" aria-disabled="@(Model.Status == "Pending" ? "true" : "false")">Pending</a></li>
+                <li><a class="dropdown-item @(Model.Status == "Processing" ? "disabled" : "")" href="#" onclick="updateStatus(@Model.Id, 'Processing')" aria-disabled="@(Model.Status == "Processing" ? "true" : "false")">Processing</a></li>
+                <li><a class="dropdown-item @(Model.Status == "Shipped" ? "disabled" : "")" href="#" onclick="updateStatus(@Model.Id, 'Shipped')" aria-disabled="@(Model.Status == "Shipped" ? "true" : "false")">Shipped</a></li>
+                <li><a class="dropdown-item @(Model.Status == "Delivered" ? "disabled" : "")" href="#" onclick="updateStatus(@Model.Id, 'Delivered')" aria-disabled="@(Model.Status == "Delivered" ? "true" : "false")">Delivered</a></li>
+                <li><a class="dropdown-item @(Model.Status == "Return" ? "disabled" : "")" href="#" onclick="updateStatus(@Model.Id, 'Return')" aria-disabled="@(Model.Status == "Return" ? "true" : "false")">Return</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item text-danger" href="#" onclick="updateStatus(@Model.Id, 'Cancelled')">Cancelled</a></li>
+                <li><a class="dropdown-item text-danger @(Model.Status == "Cancelled" ? "disabled" : "")" href="#" onclick="updateStatus(@Model.Id, 'Cancelled')" aria-disabled="@(Model.Status == "Cancelled" ? "true" : "false")">Cancelled</a></li>
             </ul>
         </div>
+        @if (Model.Status == "Return")
+        {
+            <button class="btn btn-sm text-white ms-2 process-return" data-order-id="@Model.Id" data-order-number="@Model.OrderNumber" style="background: #facc15; color: #1f2937;" data-bs-toggle="tooltip" title="Process return request" aria-label="Process return">
+                <i class="fas fa-undo"></i> Process Return
+            </button>
+        }
     </td>
 </tr>
 
@@ -40,9 +46,9 @@
             "Processing" => "bg-info text-white",
             "Shipped" => "bg-success text-white",
             "Delivered" => "bg-primary text-white",
-            "Return" => "bg-secondary",
+            "Return" => "bg-secondary text-white",
             "Cancelled" => "bg-danger text-white",
-            _ => "bg-secondary"
+            _ => "bg-secondary text-white"
         };
     }
 }

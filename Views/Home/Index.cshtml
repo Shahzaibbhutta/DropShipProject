@@ -4,50 +4,45 @@
     ViewData["Title"] = "Home Page";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 <style>
-    body {
-        background-color: #f8f9fa;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
+    /* Store Header */
     .store-header {
-        color: #343a40;
+        color: #1f2937;
         font-weight: 700;
-        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
+    /* Supplier Title */
     .supplier-title {
-        color: #495057;
+        color: #1f2937;
         font-weight: 600;
-        border-left: 4px solid #007bff;
-        padding-left: 10px;
-        margin-bottom: 20px;
+        border-left: 4px solid #2563eb;
+        padding-left: 12px;
+        margin-bottom: 24px;
     }
 
+    /* Product Card */
     .product-card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         border: none;
-        border-radius: 15px;
+        border-radius: 12px;
         overflow: hidden;
         background: #ffffff;
     }
 
         .product-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
         }
 
     .product-img {
         width: 100%;
-        height: 250px;
+        height: 200px;
         object-fit: contain;
         object-position: center;
         transition: transform 0.3s ease;
-        display: block;
-        background-color: #f8f9fa;
+        background-color: #f9fafb;
     }
 
     .product-card:hover .product-img {
@@ -55,84 +50,66 @@
     }
 
     .card-body {
-        padding: 20px;
+        padding: 16px;
     }
 
     .card-title {
-        font-size: 1.25rem;
-        color: #212529;
-        margin-bottom: 15px;
+        font-size: 1.125rem;
+        color: #1f2937;
+        margin-bottom: 12px;
+        font-weight: 600;
     }
 
     .card-text {
-        color: #6c757d;
-        font-size: 0.95rem;
-        line-height: 1.6;
+        color: #4b5563;
+        font-size: 0.875rem;
+        line-height: 1.5;
     }
 
-    .btn-primary {
-        background-color: #007bff;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 10px;
-        font-weight: 500;
-        transition: background-color 0.3s ease;
+    .card-footer {
+        padding: 0 16px 16px;
     }
 
-        .btn-primary:hover {
-            background-color: #0056b3;
-        }
-
-    .no-products {
-        background: #e9ecef;
-        border-radius: 10px;
-        padding: 20px;
-        font-size: 1.1rem;
-    }
-
+    /* Filter Section */
     .filter-section {
         background: #ffffff;
-        border-radius: 10px;
+        border-radius: 12px;
         padding: 20px;
-        margin-bottom: 30px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 32px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
         .filter-section label {
             font-weight: 500;
-            color: #343a40;
+            color: #1f2937;
         }
 
-        .filter-section select,
-        .filter-section input {
+        .filter-section input,
+        .filter-section select {
             border-radius: 8px;
+            border: 1px solid #d1d5db;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-    .btn-filter {
-        background-color: #28a745;
-        border: none;
-        padding: 8px 20px;
-        border-radius: 8px;
+            .filter-section input:focus,
+            .filter-section select:focus {
+                border-color: #2563eb;
+                box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            }
+
+    /* No Products */
+    .no-products {
+        background: #f3f4f6;
+        border-radius: 12px;
+        padding: 24px;
+        font-size: 1rem;
+        color: #4b5563;
+        text-align: center;
     }
-
-        .btn-filter:hover {
-            background-color: #218838;
-        }
-
-    .btn-reset {
-        background-color: #6c757d;
-        border: none;
-        padding: 8px 20px;
-        border-radius: 8px;
-    }
-
-        .btn-reset:hover {
-            background-color: #5a6268;
-        }
 </style>
 
 <div class="container my-5">
-    <h1 class="store-header mb-5 text-center">Welcome to Our Store</h1>
+    <h1 class="store-header mb-5 text-center text-3xl">Welcome to Our Store</h1>
 
     <!-- Filter Section -->
     <div class="filter-section">
@@ -155,8 +132,8 @@
                 <div class="col-md-2">
                     <label for="sortOrder" class="form-label">Sort Order</label>
                     <select id="sortOrder" name="sortOrder" class="form-select">
-                        <option value="asc" selected="@(ViewData["SortOrder"]?.ToString() == "asc")">Ascending</option>
-                        <option value="desc" selected="@(ViewData["SortOrder"]?.ToString() == "desc")">Descending</option>
+                        <option value="asc" selected="@(ViewData["SortBy"]?.ToString() == "asc")">Ascending</option>
+                        <option value="desc" selected="@(ViewData["SortBy"]?.ToString() == "desc")">Descending</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -167,12 +144,11 @@
                     <label for="maxPrice" class="form-label">Max Price</label>
                     <input type="number" id="maxPrice" name="maxPrice" class="form-control" step="0.01" min="0" value="@ViewData["MaxPrice"]">
                 </div>
-                <br />
                 <div class="col-md-1">
-                    <button type="submit" class="btn btn-filter w-100">Filter</button>
+                    <button type="submit" class="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white rounded-lg w-100 py-2">Filter</button>
                 </div>
                 <div class="col-md-1">
-                    <a href="@Url.Action("Index")" class="btn btn-reset w-100">Reset</a>
+                    <a href="@Url.Action("Index")" class="btn btn-secondary bg-gray-600 hover:bg-gray-700 text-white rounded-lg w-100 py-2">Reset</a>
                 </div>
             </div>
         </form>
@@ -184,12 +160,12 @@
     }
     @if (recommendedProducts != null && recommendedProducts.Any())
     {
-        <h2 class="supplier-title mb-4">Recommended Products</h2>
+        <h2 class="supplier-title text-xl mb-4">Recommended Products</h2>
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
             @foreach (var product in recommendedProducts)
             {
                 <div class="col">
-                    <div class="product-card h-100 shadow-sm">
+                    <div class="product-card h-100">
                         <div class="overflow-hidden">
                             @if (!string.IsNullOrEmpty(product.ProductPicture))
                             {
@@ -203,13 +179,13 @@
                         <div class="card-body">
                             <h5 class="card-title">@product.Name</h5>
                             <p class="card-text">
-                                <strong>Price:</strong> @product.Price<br />
+                                <strong>Price:</strong> $@product.Price.ToString("F2")<br />
                                 <strong>Stock:</strong> @product.Stock units<br />
                                 <strong>SKU:</strong> @product.SKU
                             </p>
                         </div>
-                        <div class="card-footer bg-transparent border-0 text-center pb-3">
-                            <a href="@Url.Action("Details", "Home", new { id = product.Id })" class="btn btn-primary">View Details</a>
+                        <div class="card-footer bg-transparent border-0 text-center">
+                            <a href="@Url.Action("Details", "Home", new { id = product.Id })" class="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 px-4">View Details</a>
                         </div>
                     </div>
                 </div>
@@ -220,7 +196,7 @@
     <!-- Supplier-Grouped Products -->
     @if (Model == null || !Model.Any())
     {
-        <div class="no-products text-center">
+        <div class="no-products">
             No products available at the moment. Check back soon!
         </div>
     }
@@ -228,16 +204,16 @@
     {
         @foreach (var supplierGroup in Model)
         {
-            <h2 class="supplier-title mb-4">Products by @supplierGroup.SupplierName</h2>
+            <h2 class="supplier-title text-xl mb-4">Products by @supplierGroup.SupplierName</h2>
             <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4 mb-5">
                 @foreach (var product in supplierGroup.Products)
                 {
                     <div class="col">
-                        <div class="product-card h-100 shadow-sm">
+                        <div class="product-card h-100">
                             <div class="overflow-hidden">
                                 @if (!string.IsNullOrEmpty(product.ProductPicture))
                                 {
-                                    <img src="@product.ProductPicture" class="product-img" alt="@product.Name">
+                                    <img src="@product.ProductPicture" class="product-img" class="product-img" alt="@product.Name">
                                 }
                                 else
                                 {
@@ -247,13 +223,13 @@
                             <div class="card-body">
                                 <h5 class="card-title">@product.Name</h5>
                                 <p class="card-text">
-                                    <strong>Price:</strong> @product.Price<br />
+                                    <strong>Price:</strong> $@product.Price.ToString("F2")<br />
                                     <strong>Stock:</strong> @product.Stock units<br />
                                     <strong>SKU:</strong> @product.SKU
                                 </p>
                             </div>
-                            <div class="card-footer bg-transparent border-0 text-center pb-3">
-                                <a href="@Url.Action("Details", "Home", new { id = product.Id })" class="btn btn-primary">View Details</a>
+                            <div class="card-footer bg-transparent border-0 text-center">
+                                <a href="@Url.Action("Details", "Home", new { id = product.Id })" class="btn btn-primary bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 px-4">View Details</a>
                             </div>
                         </div>
                     </div>

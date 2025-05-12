@@ -3,27 +3,33 @@
 @inject SignInManager<User> SignInManager
 @inject UserManager<User> UserManager
 
-<ul class="navbar-nav">
+<ul class="navbar-nav ms-auto align-items-center">
     @if (SignInManager.IsSignedIn(User))
     {
-        <li class="nav-item">
-            <span class="nav-link text-dark">
-                Hello @UserManager.GetUserName(User)!
+        <li class="nav-item d-flex align-items-center">
+            <span class="nav-link text-white fw-medium me-2">
+                <i class="fas fa-user-circle me-1"></i> @UserManager.GetUserName(User)
             </span>
         </li>
         <li class="nav-item">
             <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })" method="post">
-                <button type="submit" class="nav-link btn btn-link text-dark">Logout</button>
+                <button type="submit" class="nav-link btn btn-outline-light text-white border-2 rounded-pill px-3 py-1 hover:bg-yellow-400 hover:text-gray-900 transition-colors">
+                    Logout
+                </button>
             </form>
         </li>
     }
     else
     {
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-controller="Account" asp-action="Register">Register</a>
+            <a class="nav-link text-white fw-medium hover:text-yellow-400 transition-colors" asp-controller="Account" asp-action="Register">
+                <i class="fas fa-user-plus me-1"></i> Register
+            </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link text-dark" asp-controller="Account" asp-action="Login">Login</a>
+            <a class="nav-link text-white fw-medium hover:text-yellow-400 transition-colors" asp-controller="Account" asp-action="Login">
+                <i class="fas fa-sign-in-alt me-1"></i> Login
+            </a>
         </li>
     }
 </ul>

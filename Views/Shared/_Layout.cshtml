@@ -3,104 +3,209 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>E- COMMERCE DROPSHIPPING</title>
-    <!-- Bootstrap 5.3.3 CSS via CDN -->
+    <title>E-Commerce Dropshipping</title>
+    <!-- Bootstrap 5.3.3 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous" />
+    <!-- Tailwind CSS via CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <!-- Chatbot CSS -->
     <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            color: #1f2937;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background: linear-gradient(90deg, #2563eb, #1e40af);
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #fff !important;
+            transition: color 0.3s;
+        }
+
+        .navbar-brand:hover {
+            color: #facc15 !important;
+        }
+
+        .nav-link {
+            color: #fff !important;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-link:hover {
+            color: #facc15 !important;
+        }
+
+        .navbar-toggler {
+            border-color: #fff;
+        }
+
+        /* Main Content */
+        .main-content {
+            min-height: calc(100vh - 200px);
+            padding: 2rem 0;
+        }
+
+        /* Chatbot Styling */
         #chatbot-container {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 300px;
+            width: 360px;
             background: #fff;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
             display: none;
             flex-direction: column;
             z-index: 1000;
+            transition: all 0.3s ease;
         }
 
         #chatbot-header {
-            background: #007bff;
+            background: #2563eb;
             color: #fff;
-            padding: 10px;
-            border-radius: 15px 15px 0 0;
+            padding: 12px 16px;
+            border-radius: 16px 16px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            font-weight: 600;
         }
 
         #chatbot-body {
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
-            padding: 10px;
+            padding: 16px;
+            background: #f9fafb;
         }
 
         #chatbot-input {
-            border-top: 1px solid #ddd;
-            padding: 10px;
+            border-top: 1px solid #e5e7eb;
+            padding: 12px;
             display: flex;
+            gap: 8px;
+            background: #fff;
+            border-radius: 0 0 16px 16px;
         }
 
-            #chatbot-input input {
-                flex-grow: 1;
-                border: none;
-                outline: none;
-                padding: 5px;
-            }
+        #chatbot-input input {
+            flex-grow: 1;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 8px 12px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
 
-            #chatbot-input button {
-                background: #007bff;
-                color: #fff;
-                border: none;
-                padding: 5px 10px;
-                border-radius: 5px;
-            }
+        #chatbot-input input:focus {
+            border-color: #2563eb;
+        }
+
+        #chatbot-input button {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background 0.3s;
+        }
+
+        #chatbot-input button:hover {
+            background: #1e40af;
+        }
 
         .chat-message {
-            margin: 5px 0;
-            padding: 8px;
-            border-radius: 10px;
+            margin: 8px 0;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.4;
         }
 
         .user-message {
-            background: #007bff;
+            background: #2563eb;
             color: #fff;
-            margin-left: 20%;
+            margin-left: 15%;
         }
 
         .bot-message {
-            background: #f1f1f1;
-            margin-right: 20%;
+            background: #e5e7eb;
+            color: #1f2937;
+            margin-right: 15%;
         }
 
         #chatbot-toggle {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            background: #007bff;
+            background: #2563eb;
             color: #fff;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             z-index: 1000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+
+        #chatbot-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        /* Footer Styling */
+        .footer {
+            background: #1f2937;
+            color: #fff;
+            padding: 2rem 0;
+            margin-top: 2rem;
+        }
+
+        .footer a {
+            color: #facc15;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer a:hover {
+            color: #fff;
+        }
+
+        /* Responsive Adjustments */
+        media (max-width: 576px) {
+            #chatbot-container {
+                width: 90%;
+                bottom: 10px;
+                right: 10px;
+            }
+
+            .navbar-brand {
+                font-size: 1.25rem;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">E- COMMERCE DROPSHIPPING</a>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">E-Commerce Dropshipping</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
@@ -112,28 +217,28 @@
                             @if (User.IsInRole("Supplier"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                                    <a class="nav-link" asp-area="Supplier" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="Supplier" asp-controller="OrderManagement" asp-action="Index">Orders</a>
+                                    <a class="nav-link" asp-area="Supplier" asp-controller="OrderManagement" asp-action="Index">Orders</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Product" asp-action="Index">Products</a>
+                                    <a class="nav-link" asp-area="Supplier" asp-controller="Product" asp-action="Index">Products</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="Supplier" asp-controller="Product" asp-action="StockOverview">Stock Overview</a>
+                                    <a class="nav-link" asp-area="Supplier" asp-controller="Product" asp-action="StockOverview">Stock Overview</a>
                                 </li>
                             }
                             else if (User.IsInRole("DropShipper"))
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+                                    <a class="nav-link" asp-area="DropShipper" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Order" asp-action="Index">Orders</a>
+                                    <a class="nav-link" asp-area="DropShipper" asp-controller="Order" asp-action="Index">Orders</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="DropShipper" asp-controller="Order" asp-action="Create">New Order</a>
+                                    <a class="nav-link" asp-area="DropShipper" asp-controller="Order" asp-action="Create">New Order</a>
                                 </li>
                             }
                         }
@@ -143,15 +248,16 @@
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+
+    <div class="container main-content">
+        <main role="main">
             @RenderBody()
         </main>
     </div>
 
     <!-- Chatbot Widget -->
     <div id="chatbot-toggle">
-        <i class="fas fa-comment"></i>
+        <i class="fas fa-comment fa-lg"></i>
     </div>
     <div id="chatbot-container">
         <div id="chatbot-header">
@@ -167,15 +273,39 @@
         </div>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="footer">
         <div class="container">
-            © @DateTime.Now.Year - ECOMMERCE DROPSHIPPING
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <h5 class="font-bold">E-Commerce Dropshipping</h5>
+                    <p class="text-sm">Your one-stop platform for seamless dropshipping and supplier management.</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h5 class="font-bold">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/">Home</a></li>
+                        <li><a href="/Home/Privacy">Privacy Policy</a></li>
+                        <li><a href="mailto:support@ecommercedropshipping.com">Contact Support</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h5 class="font-bold">Connect With Us</h5>
+                    <div class="d-flex gap-3">
+                        <a href="#"><i class="fab fa-facebook fa-lg"></i></a>
+                        <a href="#"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#"><i class="fab fa-instagram fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <p class="mb-0">© @DateTime.Now.Year - E-Commerce Dropshipping</p>
+            </div>
         </div>
     </footer>
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    <!-- Bootstrap 5.3.3 JS Bundle (includes Popper) -->
+    <!-- Bootstrap 5.3.3 JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
     <!-- Custom JS -->
     <script src="~/js/site.js" asp-append-version="true"></script>
@@ -234,7 +364,7 @@
                 waitingForOrderNumber = true;
                 appendBotMessage('Please provide your order number.');
             } else if (message.includes('support') || message.includes('help')) {
-                appendBotMessage('Contact our support team at support@ecommercedropshipping.com or ask about products!');
+                appendBotMessage('Contact our support team at <a href="mailto:support@ecommercedropshipping.com">support@ecommercedropshipping.com</a> or ask about products!');
             } else if (message.includes('hi') || message.includes('hello')) {
                 appendBotMessage('Hey there! How can I assist you today?');
             } else {

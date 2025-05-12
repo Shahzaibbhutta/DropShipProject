@@ -6,91 +6,109 @@
     ViewData["Title"] = "My Orders";
 }
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<div class="container main-content">
+    <h2 class="mb-4 text-2xl font-bold" style="color: #2563eb;">My Orders</h2>
 
-<div class="container my-4">
-    <h2 class="mb-4 text-primary">My Orders</h2>
-
-    <div class="mb-3">
-        <label class="fw-bold me-2">Filter by Status:</label>
-        @foreach (var status in new[] { "Pending", "Processing", "Shipped", "Delivered", "Return", "Cancelled" })
-        {
-            <div class="form-check form-check-inline">
-                <input class="form-check-input status-filter" type="checkbox" value="@status" id="@status">
-                <label class="form-check-label" for="@status">@status</label>
+    <div class="card shadow-sm border-0 rounded-lg">
+        <div class="card-body p-4">
+            <div class="mb-4">
+                <label class="fw-bold me-2 mb-2">Filter by Status:</label>
+                <div class="d-flex flex-wrap gap-3">
+                    @foreach (var status in new[] { "Pending", "Processing", "Shipped", "Delivered", "Return", "Cancelled" })
+                    {
+                        <div class="form-check form-switch">
+                            <input class="form-check-input status-filter" type="checkbox" value="@status" id="@status" role="checkbox" aria-label="Filter by @status">
+                            <label class="form-check-label" for="@status">@status</label>
+                        </div>
+                    }
+                </div>
             </div>
-        }
-    </div>
 
-    <div class="table-responsive">
-        <table class="table table-striped table-hover border">
-            <thead class="table-dark">
-                <tr>
-                    <th>Order #</th>
-                    <th>Supplier</th>
-                    <th>Date</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="orderTableBody">
-                @foreach (var order in Model)
-                {
-                    <tr>
-                        <td>@order.OrderNumber</td>
-                        <td>@order.Supplier.CompanyName</td>
-                        <td>@order.OrderDate.ToString("d")</td>
-                        <td>@order.TotalAmount</td>
-                        <td>
-                            <span class="badge @GetStatusBadgeClass(order.Status)">
-                                @order.Status
-                            </span>
-                        </td>
-                        <td>
-                            <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm btn-info text-white">
-                                <i class="bi bi-eye"></i> View
-                            </a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+            <div class="table-responsive">
+                <table class="table table-striped table-hover border rounded">
+                    <thead style="background: #2563eb; color: #fff;">
+                        <tr>
+                            <th>Order #</th>
+                            <th>Supplier</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTableBody">
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td>@order.OrderNumber</td>
+                                <td>@order.Supplier.CompanyName</td>
+                                <td>@order.OrderDate.ToString("d")</td>
+                                <td>@order.TotalAmount</td>
+                                <td>
+                                    <span class="badge @GetStatusBadgeClass(order.Status)">
+                                        @order.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@order.Id" class="btn btn-sm text-white" style="background: #2563eb;">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div>
+                    <label for="rowsPerPage" class="me-2">Rows per page:</label>
+                    <select id="rowsPerPage" class="form-select d-inline-block w-auto">
+                        <option value="5">5</option>
+                        <option value="10" selected>10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                    </select>
+                </div>
+                <nav aria-label="Order pagination">
+                    <ul class="pagination mb-0">
+                        <li class="page-item" id="prevPage"><a class="page-link" href="#">Previous</a></li>
+                        <li class="page-item" id="nextPage"><a class="page-link" href="#">Next</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
     </div>
 </div>
-
 @section Scripts {
     <script>
         $(document).ready(function () {
+            let orders = @Html.Raw(Json.Serialize(Model.Select(o => new
+            {
+                id = o.Id,
+                orderNumber = o.OrderNumber,
+                supplierCompanyName = o.Supplier.CompanyName,
+                orderDate = o.OrderDate.ToString("o"),
+                totalAmount = o.TotalAmount,
+                status = o.Status
+            })));
+            let currentPage = 1;
+            let rowsPerPage = 10;
+
+            // Filter by Status
             $('.status-filter').change(function () {
-                var selectedStatuses = $('.status-filter:checked').map(function () {
+                const selectedStatuses = $('.status-filter:checked').map(function () {
                     return this.value;
                 }).get();
-
                 $.ajax({
                     url: '@Url.Action("FilterByStatus", "Order", new { area = "DropShipper" })',
                     type: 'GET',
                     traditional: true,
                     data: { statuses: selectedStatuses },
-                    success: function (orders) {
-                        var rows = '';
-                        if (orders.length === 0) {
-                            rows = '<tr><td colspan="6" class="text-center text-muted">No matching orders found.</td></tr>';
-                        } else {
-                            orders.forEach(function (order) {
-                                rows += `<tr>
-                                            <td>${order.orderNumber}</td>
-                                            <td>${order.supplierCompanyName}</td>
-                                            <td>${new Date(order.orderDate).toLocaleDateString()}</td>
-                                            <td>${order.totalAmount}</td>
-                                            <td><span class="badge ${getBadgeClass(order.status)}">${order.status}</span></td>
-                                            <td><a href="/DropShipper/Order/Details/${order.id}" class="btn btn-sm btn-info text-white"><i class="bi bi-eye"></i> View</a></td>
-                                        </tr>`;
-                            });
-                        }
-                        $('#orderTableBody').html(rows);
+                    success: function (data) {
+                        orders = data;
+                        currentPage = 1;
+                        renderTable();
                     },
                     error: function () {
                         alert('Failed to load filtered orders.');
@@ -98,17 +116,81 @@
                 });
             });
 
+            // Pagination
+            $('#rowsPerPage').change(function () {
+                rowsPerPage = parseInt(this.value);
+                currentPage = 1;
+                renderTable();
+            });
+
+
+            $('#prevPage').click(function (e) {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+
+            $('#nextPage').click(function (e) {
+                e.preventDefault();
+                const totalPages = Math.ceil(orders.length / rowsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+
+            function renderTable() {
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                const paginatedOrders = orders.slice(start, end);
+
+                let rows = '';
+                if (paginatedOrders.length === 0) {
+                    rows = '<tr><td colspan="6" class="text-center text-muted">No matching orders found.</td></tr>';
+                } else {
+                    paginatedOrders.forEach(function (order) {
+                        const returnButton = (order.status === 'Delivered' || order.status === 'Shipped')
+                            ? ``
+                            : '';
+                        rows += `<tr>
+                                            <td>${order.orderNumber}</td>
+                                            <td>${order.supplierCompanyName}</td>
+                                            <td>${new Date(order.orderDate).toLocaleDateString()}</td>
+                                            <td>${order.totalAmount}</td>
+                                            <td><span class="badge ${getBadgeClass(order.status)}">${order.status}</span></td>
+                                            <td>
+                                                <a href="/DropShipper/Order/Details/${order.id}" class="btn btn-sm text-white" style="background: #2563eb;"><i class="fas fa-eye"></i> View</a>
+                                                ${returnButton}
+                                            </td>
+                                        </tr>`;
+                    });
+                }
+                $('#orderTableBody').html(rows);
+
+                // Update pagination
+                const totalPages = Math.ceil(orders.length / rowsPerPage);
+                $('#prevPage').toggleClass('disabled', currentPage === 1);
+                $('#nextPage').toggleClass('disabled', currentPage >= totalPages);
+
+                // Rebind return button events
+                bindReturnButtons();
+            }
+
             function getBadgeClass(status) {
                 switch (status) {
                     case 'Pending': return 'bg-warning text-dark';
                     case 'Processing': return 'bg-info text-white';
-                    case 'Shipped': return 'bg-success';
-                    case 'Delivered': return 'bg-primary';
-                    case 'Return': return 'bg-secondary';
-                    case 'Cancelled': return 'bg-danger';
-                    default: return 'bg-secondary';
+                    case 'Shipped': return 'bg-success text-white';
+                    case 'Delivered': return 'bg-primary text-white';
+                    case 'Return': return 'bg-secondary text-white';
+                    case 'Cancelled': return 'bg-danger text-white';
+                    default: return 'bg-secondary text-white';
                 }
             }
+            // Initial table render
+            renderTable();
         });
     </script>
 }
@@ -120,11 +202,11 @@
         {
             "Pending" => "bg-warning text-dark",
             "Processing" => "bg-info text-white",
-            "Shipped" => "bg-success",
-            "Delivered" => "bg-primary",
-            "Return" => "bg-secondary",
-            "Cancelled" => "bg-danger",
-            _ => "bg-secondary"
+            "Shipped" => "bg-success text-white",
+            "Delivered" => "bg-primary text-white",
+            "Return" => "bg-secondary text-white",
+            "Cancelled" => "bg-danger text-white",
+            _ => "bg-secondary text-white"
         };
     }
 }

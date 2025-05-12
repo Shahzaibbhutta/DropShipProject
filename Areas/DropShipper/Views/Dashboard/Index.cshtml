@@ -6,118 +6,122 @@
     ViewData["Title"] = "Drop Shipper Dashboard";
 }
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-    body {
-        background-color: #f4f6f9;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
+    /* General Styling */
     .container {
         max-width: 1400px;
     }
 
     h2, h3 {
-        color: #1a3c6d;
+        color: #1f2937;
         font-weight: 600;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.025rem;
     }
 
+    /* Summary Cards */
     .card {
         border: none;
-        border-radius: 10px;
+        border-radius: 12px;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
 
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1);
-        }
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
 
     .card-header {
         font-weight: 600;
         border-bottom: none;
         background: transparent;
         color: #ffffff;
+        padding: 16px;
     }
 
     .card-body {
-        padding: 1.5rem;
+        padding: 20px;
     }
 
     .card-title {
-        font-size: 1.6rem;
+        font-size: 1.5rem;
         font-weight: 700;
+        color: #ffffff;
     }
 
+    /* Chart Containers */
     .chart-container {
         background: #ffffff;
-        border-radius: 10px;
+        border-radius: 12px;
         padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        width: 400px; /* Fixed width */
-        height: 400px; /* Fixed height */
-        margin-left: auto;
-        margin-right: auto;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 400px;
+        height: 400px;
+        margin: 0 auto;
     }
 
-        .chart-container canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
+    .chart-container canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
 
+    /* Table */
     .table-responsive {
-        border-radius: 10px;
+        border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .table th {
         font-weight: 600;
+        background-color: #1f2937;
+        color: #ffffff;
     }
 
     .table td {
         vertical-align: middle;
+        color: #4b5563;
     }
 
     .badge {
-        font-size: 0.85rem;
-        padding: 0.4em 0.8em;
+        font-size: 0.75rem;
+        padding: 0.35em 0.75em;
+        border-radius: 9999px;
     }
 
-    .btn-info {
-        border-radius: 6px;
+    /* Responsive Adjustments */
+    media (max-width: 767px) {
+        .chart-container {
+            max-width: 100%;
+            height: 300px;
+        }
     }
 </style>
 
 <div class="container my-5">
-    <h2 class="mb-5">DropShipper Dashboard</h2>
+    <h2 class="mb-5 text-3xl">DropShipper Dashboard</h2>
 
     <!-- Summary Cards -->
     <div class="row g-4 mb-5">
         <div class="col-md-4">
-            <div class="card text-white bg-primary mb-3 shadow-sm">
-                <div class="card-header fw-bold">Pending Orders</div>
+            <div class="card text-white bg-blue-600 hover:bg-blue-700 shadow-lg">
+                <div class="card-header">Pending Orders</div>
                 <div class="card-body">
                     <h5 class="card-title">@Model.Count(o => o.Status == "Pending")</h5>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card text-white bg-success mb-3 shadow-sm">
-                <div class="card-header fw-bold">Completed Orders</div>
+            <div class="card text-white bg-green-600 hover:bg-green-700 shadow-lg">
+                <div class="card-header">Completed Orders</div>
                 <div class="card-body">
                     <h5 class="card-title">@Model.Count(o => o.Status == "Delivered")</h5>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card text-white bg-secondary mb-3 shadow-sm">
-                <div class="card-header fw-bold">Total Orders</div>
+            <div class="card text-white bg-gray-600 hover:bg-gray-700 shadow-lg">
+                <div class="card-header">Total Orders</div>
                 <div class="card-body">
                     <h5 class="card-title">@Model.Count()</h5>
                 </div>
@@ -126,7 +130,7 @@
     </div>
 
     <!-- Charts Section -->
-    <h3 class="mt-5 mb-4">Order Analytics</h3>
+    <h3 class="mt-5 mb-4 text-xl">Order Analytics</h3>
     <div class="row g-4 justify-content-center">
         <div class="col-md-6 col-lg-4">
             <div class="chart-container">
@@ -146,10 +150,10 @@
     </div>
 
     <!-- Recent Orders Table -->
-    <h3 class="mt-5 mb-4">Recent Orders</h3>
+    <h3 class="mt-5 mb-4 text-xl">Recent Orders</h3>
     <div class="table-responsive">
         <table class="table table-hover table-bordered align-middle">
-            <thead class="table-dark">
+            <thead>
                 <tr>
                     <th scope="col">Order #</th>
                     <th scope="col">Supplier</th>
@@ -168,12 +172,12 @@
                         <td>@order.OrderDate.ToString("d")</td>
                         <td>@order.TotalAmount.ToString("C", new System.Globalization.CultureInfo("pk-PK"))</td>
                         <td>
-                            <span class="badge @GetStatusBadgeClass(order.Status) rounded-pill">
+                            <span class="badge @GetStatusBadgeClass(order.Status)">
                                 @order.Status
                             </span>
                         </td>
                         <td>
-                            <a asp-area="DropShipper" asp-action="Details" asp-controller="Order" asp-route-id="@order.Id" class="btn btn-sm btn-info">View</a>
+                            <a asp-area="DropShipper" asp-action="Details" asp-controller="Order" asp-route-id="@order.Id" class="btn btn-sm btn-info bg-blue-600 hover:bg-blue-700 text-white rounded-lg">View</a>
                         </td>
                     </tr>
                 }
@@ -183,6 +187,7 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         // PKR formatter
         const pkrFormatter = new Intl.NumberFormat('en-PK', {
@@ -201,7 +206,6 @@
                     url: '@Url.Action("GetOrdersByStatus", "Dashboard", new { area = "DropShipper" })',
                     type: 'GET',
                     success: function (data) {
-                        console.log('Orders by status:', data);
                         renderBarChart(data);
                     },
                     error: function (xhr, status, error) {
@@ -215,7 +219,6 @@
                     url: '@Url.Action("GetOrderAmountOverTime", "Dashboard", new { area = "DropShipper" })',
                     type: 'GET',
                     success: function (data) {
-                        console.log('Order amount over time:', data);
                         renderLineChart(data);
                     },
                     error: function (xhr, status, error) {
@@ -229,7 +232,6 @@
                     url: '@Url.Action("GetOrderStatusDistribution", "Dashboard", new { area = "DropShipper" })',
                     type: 'GET',
                     success: function (data) {
-                        console.log('Order status distribution:', data);
                         renderPieChart(data);
                     },
                     error: function (xhr, status, error) {
@@ -255,12 +257,12 @@
                                 data.cancelled || 0
                             ],
                             backgroundColor: [
-                                '#ffc107',
-                                '#17a2b8',
-                                '#28a745',
-                                '#007bff',
-                                '#6c757d',
-                                '#dc3545'
+                                '#facc15', /* Yellow for Pending */
+                                '#06b6d4', /* Cyan for Processing */
+                                '#22c55e', /* Green for Shipped */
+                                '#2563eb', /* Blue for Delivered */
+                                '#6b7280', /* Gray for Return */
+                                '#ef4444'  /* Red for Cancelled */
                             ],
                             borderColor: '#ffffff',
                             borderWidth: 1
@@ -272,7 +274,8 @@
                                 display: true,
                                 text: 'Orders by Status',
                                 font: { size: 16, weight: 'bold' },
-                                padding: { top: 10, bottom: 20 }
+                                padding: { top: 10, bottom: 20 },
+                                color: '#1f2937'
                             },
                             legend: { display: false }
                         },
@@ -282,12 +285,15 @@
                                 title: {
                                     display: true,
                                     text: 'Number of Orders',
-                                    font: { size: 12 }
+                                    font: { size: 12 },
+                                    color: '#1f2937'
                                 },
-                                grid: { color: '#e9ecef' }
+                                grid: { color: '#e5e7eb' },
+                                ticks: { color: '#4b5563' }
                             },
                             x: {
-                                grid: { display: false }
+                                grid: { display: false },
+                                ticks: { color: '#4b5563' }
                             }
                         },
                         maintainAspectRatio: false
@@ -304,8 +310,8 @@
                         datasets: [{
                             label: 'Total Amount (PKR)',
                             data: data.map(item => item.totalAmount),
-                            borderColor: '#007bff',
-                            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                            borderColor: '#2563eb',
+                            backgroundColor: 'rgba(37, 99, 235, 0.2)',
                             fill: true,
                             tension: 0.4
                         }]
@@ -316,9 +322,14 @@
                                 display: true,
                                 text: 'Order Amount Over Time (PKR)',
                                 font: { size: 16, weight: 'bold' },
-                                padding: { top: 10, bottom: 20 }
+                                padding: { top: 10, bottom: 20 },
+                                color: '#1f2937'
                             },
-                            legend: { display: true, position: 'top' }
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: { font: { size: 12 }, color: '#4b5563' }
+                            }
                         },
                         scales: {
                             y: {
@@ -326,22 +337,26 @@
                                 title: {
                                     display: true,
                                     text: 'Total Amount (PKR)',
-                                    font: { size: 12 }
+                                    font: { size: 12 },
+                                    color: '#1f2937'
                                 },
                                 ticks: {
                                     callback: function (value) {
                                         return pkrFormatter.format(value);
-                                    }
+                                    },
+                                    color: '#4b5563'
                                 },
-                                grid: { color: '#e9ecef' }
+                                grid: { color: '#e5e7eb' }
                             },
                             x: {
                                 title: {
                                     display: true,
                                     text: 'Date',
-                                    font: { size: 12 }
+                                    font: { size: 12 },
+                                    color: '#1f2937'
                                 },
-                                grid: { display: false }
+                                grid: { display: false },
+                                ticks: { color: '#4b5563' }
                             }
                         },
                         maintainAspectRatio: false
@@ -365,12 +380,12 @@
                                 data.cancelled || 0
                             ],
                             backgroundColor: [
-                                '#ffc107',
-                                '#17a2b8',
-                                '#28a745',
-                                '#007bff',
-                                '#6c757d',
-                                '#dc3545'
+                                '#facc15', /* Yellow for Pending */
+                                '#06b6d4', /* Cyan for Processing */
+                                '#22c55e', /* Green for Shipped */
+                                '#2563eb', /* Blue for Delivered */
+                                '#6b7280', /* Gray for Return */
+                                '#ef4444'  /* Red for Cancelled */
                             ],
                             borderColor: '#ffffff',
                             borderWidth: 2
@@ -382,11 +397,12 @@
                                 display: true,
                                 text: 'Order Status Distribution',
                                 font: { size: 16, weight: 'bold' },
-                                padding: { top: 10, bottom: 20 }
+                                padding: { top: 10, bottom: 20 },
+                                color: '#1f2937'
                             },
                             legend: {
                                 position: 'bottom',
-                                labels: { font: { size: 11 } }
+                                labels: { font: { size: 11 }, color: '#4b5563' }
                             }
                         },
                         maintainAspectRatio: false
@@ -402,13 +418,13 @@
     {
         return status switch
         {
-            "Pending" => "bg-warning text-dark",
-            "Processing" => "bg-info text-dark",
-            "Shipped" => "bg-success text-white",
-            "Delivered" => "bg-primary text-white",
-            "Return" => "bg-secondary text-white",
-            "Cancelled" => "bg-danger text-white",
-            _ => "bg-secondary text-white"
+            "Pending" => "bg-yellow-400 text-gray-900",
+            "Processing" => "bg-cyan-500 text-gray-900",
+            "Shipped" => "bg-green-500 text-white",
+            "Delivered" => "bg-blue-600 text-white",
+            "Return" => "bg-gray-500 text-white",
+            "Cancelled" => "bg-red-500 text-white",
+            _ => "bg-gray-500 text-white"
         };
     }
 }

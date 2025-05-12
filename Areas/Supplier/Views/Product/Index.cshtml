@@ -9,38 +9,66 @@
     ViewData["Title"] = "Manage Products";
 }
 
-<div class="container my-4">
-    <h2 class="mb-4 text-primary">Manage Products</h2>
-    <a asp-action="Create" class="btn btn-primary mb-3">Add New Product</a>
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover shadow-sm">
-            <thead class="table-dark">
-                <tr>
-                    <th>SKU</th>
-                    <th>Picture</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Stock</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var product in Model)
-                {
-                    <tr>
-                        <td>@product.SKU</td>
-                        <td>
-                            <img src="@product.ProductPicture" alt="@product.Name" style="max-width: 50px;" />
-                        </td>
-                        <td>@product.Name</td>
-                        <td>@product.Price</td>
-                        <td>@product.Stock</td>
-                        <td>
-                            <a asp-action="Edit" asp-route-id="@product.Id" class="btn btn-sm btn-info">Edit</a>
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h2 class="mb-0">Manage Products</h2>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-end mb-3">
+                        <a asp-action="Create" class="btn btn-primary btn-lg">Add New Product</a>
+                    </div>
+                    @if (Model == null || !Model.Any())
+                    {
+                        <div class="alert alert-info text-center" role="alert">
+                            No products available.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover table-striped shadow-sm">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>SKU</th>
+                                        <th>Picture</th>
+                                        <th>Name</th>
+                                        <th>Price (PKR)</th>
+                                        <th>Stock</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var product in Model)
+                                    {
+                                        <tr>
+                                            <td>@product.SKU</td>
+                                            <td>
+                                                @if (!string.IsNullOrEmpty(product.ProductPicture))
+                                                {
+                                                    <img src="@product.ProductPicture" alt="@product.Name" class="img-fluid rounded" style="max-width: 60px;" />
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No image</span>
+                                                }
+                                            </td>
+                                            <td>@product.Name</td>
+                                            <td>@product.Price.ToString("F2")</td>
+                                            <td>@product.Stock</td>
+                                            <td>
+                                                <a asp-action="Edit" asp-route-id="@product.Id" class="btn btn-sm btn-info text-white">Edit</a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
 </div>

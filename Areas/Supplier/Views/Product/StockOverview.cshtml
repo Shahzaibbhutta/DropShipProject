@@ -1,38 +1,258 @@
-﻿@model List<StockManagementViewModel>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+﻿@using DropShipProject.Models
+@model List<StockManagementViewModel>
 
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
-    ViewData["Title"] = "Stock Management";
+    ViewData["Title"] = "Stock Overview";
 }
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
+<link rel="stylesheet" href="~/css/stock-overview.css" asp-append-version="true" />
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Product Name</th>
-            <th>SKU</th>
-            <th>Current Stock</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var product in Model)
-        {
-            <tr>
-                <td>@product.ProductName</td>
-                <td>@product.SKU</td>
-                <td>@product.CurrentStock</td>
-                <td>
-                    <a asp-action="ManageStock" asp-route-id="@product.ProductId" class="btn btn-sm btn-info">Manage Stock</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+<div class="container main-content">
+    <h2 class="mb-3 text-2xl font-bold">Stock Overview</h2>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-3">
+        <div class="col-md-6 col-lg-3">
+            <div class="card summary-card">
+                <div class="card-header">Total Products</div>
+                <div class="card-body">
+                    <h5 class="card-title">@Model.Count</h5>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card summary-card">
+                <div class="card-header">Low Stock Products</div>
+                <div class="card-body">
+                    <h5 class="card-title">@Model.Count(p => p.CurrentStock < 10)</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-header">Filter Products</div>
+        <div class="card-body p-2">
+            <div class="input-group">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search by product name or SKU..." aria-label="Search products">
+                <button class="btn btn-primary" id="exportCsv" data-bs-toggle="tooltip" data-bs-placement="top" title="Export stock data as CSV" aria-label="Export stock data as CSV">
+                    <i class="fas fa-download"></i> Export CSV
+                </button>
+                <button class="btn btn-secondary" id="toggleLowStock" data-bs-toggle="tooltip" data-bs-placement="top" title="Show only low stock products" aria-label="Toggle low stock filter">
+                    <i class="fas fa-filter"></i> Low Stock
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Stock Overview</div>
+        <div class="card-body p-2">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th class="sortable" data-sort="productName" tabindex="0">Product Name</th>
+                            <th class="sortable" data-sort="sku" tabindex="0">SKU</th>
+                            <th class="sortable" data-sort="currentStock" tabindex="0">Current Stock</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="stockTableBody">
+                        @foreach (var product in Model.Take(5))
+                        {
+                            <tr class="@(product.CurrentStock < 10 ? "table-warning" : "")">
+                                <td>@product.ProductName</td>
+                                <td>@product.SKU</td>
+                                <td>@product.CurrentStock</td>
+                                <td>
+                                    <a asp-action="ManageStock" asp-route-id="@product.ProductId" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Manage stock and view transactions" aria-label="Manage stock for @product.ProductName">
+                                        <i class="fas fa-cog"></i> Manage
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <div>
+                    <label for="rowsPerPage" class="me-2">Rows per page:</label>
+                    <select id="rowsPerPage" class="form-select d-inline-block w-auto" aria-label="Select rows per page">
+                        <option value="5" selected>5</option>
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                    </select>
+                </div>
+                <nav aria-label="Stock pagination">
+                    <ul class="pagination mb-0">
+                        <li class="page-item" id="prevPage"><a class="page-link" href="#">Previous</a></li>
+                        <li class="page-item" id="nextPage"><a class="page-link" href="#">Next</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let allProducts = @Html.Raw(Json.Serialize(Model.Select(p => new
+            {
+                productId = p.ProductId,
+                productName = p.ProductName,
+                sku = p.SKU,
+                currentStock = p.CurrentStock
+            })));
+            let products = [...allProducts];
+            let currentPage = 1;
+            let rowsPerPage = 5;
+            let sortField = 'productName';
+            let sortOrder = 'asc';
+            let searchTimeout;
+            let showLowStock = false;
+            const manageStockUrlBase = '@Url.Action("ManageStock", "Product", new { area = "Supplier" })';
+
+            // Initialize tooltips
+            $('[data-bs-toggle="tooltip"]').tooltip();
+
+            // Initial table render
+            renderTable();
+
+            // Debounced search filter
+            $("#searchInput").on('input', function () {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    applyFilters();
+                    currentPage = 1;
+                    renderTable();
+                }, 300);
+            });
+
+            // Low stock filter toggle
+            $("#toggleLowStock").click(function () {
+                showLowStock = !showLowStock;
+                $(this).toggleClass('btn-secondary btn-warning');
+                applyFilters();
+                currentPage = 1;
+                renderTable();
+            });
+
+            // Rows per page change
+            $("#rowsPerPage").change(function () {
+                rowsPerPage = parseInt(this.value);
+                currentPage = 1;
+                renderTable();
+            });
+
+            // Pagination
+            $("#prevPage").click(function (e) {
+                e.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+
+            $("#nextPage").click(function (e) {
+                e.preventDefault();
+                const totalPages = Math.ceil(products.length / rowsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+
+            // Sorting
+            $("th.sortable").on('click keypress', function (e) {
+                if (e.type === 'keypress' && e.key !== 'Enter') return;
+                const field = $(this).data("sort");
+                if (field === sortField) {
+                    sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortField = field;
+                    sortOrder = 'asc';
+                }
+                $("th.sortable").removeClass('asc desc');
+                $(this).addClass(sortOrder);
+                sortProducts();
+                renderTable();
+            });
+
+            // Export CSV
+            $("#exportCsv").click(function () {
+                const csv = ['Product Name,SKU,Current Stock'];
+                products.forEach(p => {
+                    csv.push(`"${p.productName.replace(/"/g, '""')}",${p.sku},${p.currentStock}`);
+                });
+                const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.setAttribute('href', url);
+                a.setAttribute('download', 'stock-overview.csv');
+                a.click();
+                window.URL.revokeObjectURL(url);
+            });
+
+            function applyFilters() {
+                const query = $("#searchInput").val().toLowerCase();
+                products = allProducts.filter(p => {
+                    const matchesSearch = p.productName.toLowerCase().includes(query) || p.sku.toLowerCase().includes(query);
+                    const matchesLowStock = !showLowStock || p.currentStock < 10;
+                    return matchesSearch && matchesLowStock;
+                });
+            }
+
+            function sortProducts() {
+                products.sort((a, b) => {
+                    let valA = a[sortField];
+                    let valB = b[sortField];
+                    if (sortField === 'currentStock') {
+                        valA = parseInt(valA);
+                        valB = parseInt(valB);
+                    }
+                    if (sortOrder === 'asc') {
+                        return valA > valB ? 1 : -1;
+                    } else {
+                        return valA < valB ? 1 : -1;
+                    }
+                });
+            }
+
+            function renderTable() {
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                const paginatedProducts = products.slice(start, end);
+
+                let html = '';
+                if (paginatedProducts.length === 0) {
+                    html = '<tr><td colspan="4" class="text-center text-muted">No products found.</td></tr>';
+                } else {
+                    paginatedProducts.forEach(p => {
+                        html += `
+                                    <tr class="${p.currentStock < 10 ? 'table-warning' : ''}">
+                                        <td>${p.productName}</td>
+                                        <td>${p.sku}</td>
+                                        <td>${p.currentStock}</td>
+                                        <td>
+                                            <a href="${manageStockUrlBase}/${p.productId}" class="btn btn-sm btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Manage stock and view transactions" aria-label="Manage stock for ${p.productName}">
+                                                <i class="fas fa-cog"></i> Manage
+                                            </a>
+                                        </td>
+                                    </tr>`;
+                    });
+                }
+                $('#stockTableBody').html(html);
+
+                const totalPages = Math.ceil(products.length / rowsPerPage);
+                $('#prevPage').toggleClass('disabled', currentPage === 1);
+                $('#nextPage').toggleClass('disabled', currentPage >= totalPages);
+
+                // Reinitialize tooltips for dynamic content
+                $('[data-bs-toggle="tooltip"]').tooltip();
+            }
+        });
+    </script>
+}
