@@ -107,32 +107,51 @@ namespace DropShipProject.Controllers.Supplier
                 {
                     var emailSubject = $"Order #{order.OrderNumber} – Status Update Notification";
 
-                    var emailBody = $@"Dear {order.DropShipper.CompanyName},
+                    var emailBody = $@"
+                    <html>
+                      <body style='font-family: Arial, sans-serif; color: #333; line-height: 1.6;'>
+                        <p>Dear <strong>{order.DropShipper.CompanyName}</strong>,</p>
 
-                    We hope this message finds you well.
+                        <p>We hope this message finds you well.</p>
 
-                    We would like to inform you that the status of your order **#{order.OrderNumber}** has been updated to:
+                        <p>
+                          This is to inform you that the status of your order 
+                          <strong>#{order.OrderNumber}</strong> has been updated.
+                        </p>
 
-                    **Status:** {status}
+                        <p>
+                          <strong>Status:</strong> <span style='color: #2E86C1;'>{status}</span>
+                        </p>
 
-                    Below are the order details for your reference:
+                        <h4 style='margin-top: 30px; margin-bottom: 10px;'>Order Summary</h4>
+                        <table style='border-collapse: collapse; width: 100%; max-width: 500px;'>
+                          <tr>
+                            <td style='padding: 8px; font-weight: bold;'>Order Number:</td>
+                            <td style='padding: 8px;'>{order.OrderNumber}</td>
+                          </tr>
+                          <tr style='background-color: #f9f9f9;'>
+                            <td style='padding: 8px; font-weight: bold;'>Order Date:</td>
+                            <td style='padding: 8px;'>{order.OrderDate:yyyy-MM-dd}</td>
+                          </tr>
+                          <tr>
+                            <td style='padding: 8px; font-weight: bold;'>Total Amount:</td>
+                            <td style='padding: 8px;'>{order.TotalAmount:C}</td>
+                          </tr>
+                        </table>
 
-                    ------------------------------------------------------------
-                    - **Order Number:** {order.OrderNumber}
-                    - **Order Date:** {order.OrderDate:yyyy-MM-dd}
-                    - **Total Amount:** {order.TotalAmount}
-                    ------------------------------------------------------------
+                        <p style='margin-top: 30px;'>If you have any questions or need further assistance, feel free to contact us.</p>
 
-                    If you have any questions or require further assistance, please feel free to contact us.
+                        <p>Thank you for your continued partnership.</p>
 
-                    Thank you for your continued partnership.
+                        <p style='margin-top: 30px;'>Warm regards,<br/>
+                        <strong>ZAH Dropshipper Team</strong></p>
+                      </body>
+                    </html>";
 
-                    Warm regards,  
-                    **ZAH Dropshipper Team**";
 
                     try
                     {
-                        await _emailService.SendEmailAsync(order.DropShipper.Email, emailSubject, emailBody);
+                        await _emailService.SendEmailAsync(order.DropShipper.Email, emailSubject, emailBody,true);
                     }
                     catch (Exception emailEx)
                     {

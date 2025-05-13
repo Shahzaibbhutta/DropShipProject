@@ -13,7 +13,7 @@ namespace DropShipProject.Services
             _configuration = configuration;
         }
 
-        public async Task SendEmailAsync(string toEmail, string subject, string body)
+        public async Task SendEmailAsync(string toEmail, string subject, string body, bool isHtml = false)
         {
             var smtpSettings = _configuration.GetSection("SmtpSettings");
             var smtpHost = smtpSettings["Host"];
@@ -34,7 +34,7 @@ namespace DropShipProject.Services
                 From = new MailAddress(fromEmail, fromName),
                 Subject = subject,
                 Body = body,
-                IsBodyHtml = false
+                IsBodyHtml = isHtml
             };
             mailMessage.To.Add(toEmail);
 
