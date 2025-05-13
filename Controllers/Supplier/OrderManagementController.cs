@@ -12,13 +12,16 @@ namespace DropShipProject.Controllers.Supplier
     {
         private readonly OrderService _orderService;
         private readonly UserManager<User> _userManager;
+        private readonly IEmailService _emailService;
 
         public OrderManagementController(
-      OrderService orderService,
-      UserManager<User> userManager)
+            OrderService orderService,
+            UserManager<User> userManager,
+            IEmailService emailService)
         {
             _orderService = orderService;
             _userManager = userManager;
+            _emailService = emailService;
         }
 
         public async Task<IActionResult> Index()
@@ -44,7 +47,7 @@ namespace DropShipProject.Controllers.Supplier
                 if (statuses != null && statuses.Any())
                 {
                     orders = orders.Where(o => statuses.Contains(o.Status, StringComparer.OrdinalIgnoreCase)).ToList();
-                } // If statuses is empty, return all orders
+                }
 
                 Console.WriteLine($"Filtered orders count: {orders.Count}");
 
@@ -53,7 +56,7 @@ namespace DropShipProject.Controllers.Supplier
                     id = o.Id,
                     orderNumber = o.OrderNumber,
                     dropShipperCompanyName = o.DropShipper?.CompanyName,
-                    orderDate = o.OrderDate.ToString("o"), // ISO format for JavaScript
+                    orderDate = o.OrderDate.ToString("o"),
                     totalAmount = o.TotalAmount,
                     status = o.Status
                 }).ToList();
@@ -99,6 +102,49 @@ namespace DropShipProject.Controllers.Supplier
                 }
 
                 await _orderService.UpdateOrderStatus(orderId, status);
+
+                if (order.DropShipper?.Email != null)
+                {
+                    var emailSubject = $"Order #{order.OrderNumber} – Status Update Notification";
+
+                    var emailBody = $@"Dear {order.DropShipper.CompanyName},
+
+                    We hope this message finds you well.
+
+                    We would like to inform you that the status of your order **#{order.OrderNumber}** has been updated to:
+
+                    **Status:** {status}
+
+                    Below are the order details for your reference:
+
+                    ------------------------------------------------------------
+                    - **Order Number:** {order.OrderNumber}
+                    - **Order Date:** {order.OrderDate:yyyy-MM-dd}
+                    - **Total Amount:** {order.TotalAmount}
+                    ------------------------------------------------------------
+
+                    If you have any questions or require further assistance, please feel free to contact us.
+
+                    Thank you for your continued partnership.
+
+                    Warm regards,  
+                    **ZAH Dropshipper Team**";
+
+                    try
+                    {
+                        await _emailService.SendEmailAsync(order.DropShipper.Email, emailSubject, emailBody);
+                    }
+                    catch (Exception emailEx)
+                    {
+                        Console.WriteLine($"Failed to send email: {emailEx.Message}");
+                        // Log the error but don't fail the status update
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No dropshipper email found for order.");
+                }
+
                 return Json(new { success = true });
             }
             catch (Exception ex)
@@ -107,6 +153,5 @@ namespace DropShipProject.Controllers.Supplier
                 return Json(new { success = false, message = "Failed to update status." });
             }
         }
-
     }
 }

@@ -20,7 +20,7 @@ builder.Services.AddDbContext<DatabaseContext>(options =>
 // Register application services
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<AccountService>();
-
+builder.Services.AddSingleton<IEmailService, EmailService>();
 // Configure Identity with custom settings
 builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 {
