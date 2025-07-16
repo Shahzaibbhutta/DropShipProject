@@ -49,25 +49,63 @@ builder.Services.AddSession(options =>
 });
 // Add Razor Pages support
 builder.Services.AddRazorPages();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new() { Title = "DropShip API", Version = "v1" });
+
+    // Optional: Add XML comments support if needed
+    // var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    // options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+
+    // Optional: Add JWT Bearer Auth support
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Please enter token as: Bearer {token}",
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey
+    });
+
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseDeveloperExceptionPage();
-}
-else
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "DropShip API v1");
+    c.RoutePrefix = "swagger"; // Accessible at /swagger
+});
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.Use(async (context, next) =>
+{
+    // Allow anonymous access to Swagger in all environments
+    var path = context.Request.Path.Value;
+    if (path != null && (path.StartsWith("/swagger") || path.StartsWith("/swagger/index.html")))
+    {
+        context.Items["AllowAnonymous"] = true;
+    }
+    await next();
+});
 app.UseAuthentication();
 app.UseAuthorization();
 // Configure endpoints
