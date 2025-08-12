@@ -135,7 +135,7 @@ namespace DropShipProject.Controllers.Supplier
                           </tr>
                           <tr>
                             <td style='padding: 8px; font-weight: bold;'>Total Amount:</td>
-                            <td style='padding: 8px;'>{order.TotalAmount:C}</td>
+                            <td style='padding: 8px;'>{order.TotalAmount}</td>
                           </tr>
                         </table>
 
